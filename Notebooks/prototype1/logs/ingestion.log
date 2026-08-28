@@ -1,0 +1,127 @@
+2026-08-26 14:27:54,912 | INFO | Logger initialized.
+2026-08-26 14:28:45,246 | INFO | Files in data directory: 4
+2026-08-26 14:28:45,248 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 14:28:45,249 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 14:28:45,251 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 14:28:45,252 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 14:30:21,517 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 14:30:22,651 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 14:30:23,533 | INFO | rag.xlsx: 4720 records
+2026-08-26 14:30:23,761 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 14:30:23,763 | INFO | Total records: 5506
+2026-08-26 17:07:40,601 | INFO | Logger initialized.
+2026-08-26 17:08:08,161 | INFO | Downloaded: Attention_Is_All_You_Need.pdf
+2026-08-26 17:08:08,469 | INFO | Downloaded: Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.pdf
+2026-08-26 17:08:34,584 | INFO | Files in data directory: 6
+2026-08-26 17:08:34,586 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 17:08:34,588 | INFO | - Attention_Is_All_You_Need.pdf | .pdf | 2163.32 KB
+2026-08-26 17:08:34,589 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 17:08:34,592 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 17:08:34,593 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 17:08:34,594 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.pdf | .pdf | 864.57 KB
+2026-08-26 17:09:20,057 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 17:09:21,163 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 17:09:22,130 | INFO | rag.xlsx: 4720 records
+2026-08-26 17:09:22,343 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 17:09:22,344 | INFO | Total records: 5506
+2026-08-26 17:32:51,359 | INFO | Logger initialized.
+2026-08-26 17:32:51,871 | INFO | Downloaded: Attention_Is_All_You_Need.pdf
+2026-08-26 17:32:52,248 | INFO | Downloaded: Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.pdf
+2026-08-26 17:32:52,273 | INFO | Files in data directory: 6
+2026-08-26 17:32:52,274 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 17:32:52,276 | INFO | - Attention_Is_All_You_Need.pdf | .pdf | 2163.32 KB
+2026-08-26 17:32:52,280 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 17:32:52,281 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 17:32:52,283 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 17:32:52,285 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.pdf | .pdf | 864.57 KB
+2026-08-26 17:32:52,796 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 17:32:53,061 | INFO | Attention_Is_All_You_Need.pdf: 15 records
+2026-08-26 17:32:54,294 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 17:32:55,269 | INFO | rag.xlsx: 4720 records
+2026-08-26 17:32:55,545 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 17:32:55,691 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.pdf: 19 records
+2026-08-26 17:32:55,693 | INFO | Total records: 5540
+2026-08-26 17:35:52,496 | INFO | Files in data directory: 6
+2026-08-26 17:35:52,498 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 17:35:52,499 | INFO | - Attention_Is_All_You_Need.pdf | .pdf | 2163.32 KB
+2026-08-26 17:35:52,501 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 17:35:52,502 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 17:35:52,503 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 17:35:52,506 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.pdf | .pdf | 864.57 KB
+2026-08-26 17:36:09,465 | INFO | Files in data directory: 4
+2026-08-26 17:36:09,467 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 17:36:09,468 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 17:36:09,470 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 17:36:09,472 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 17:36:12,823 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 17:36:13,825 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 17:36:14,815 | INFO | rag.xlsx: 4720 records
+2026-08-26 17:36:15,017 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 17:36:15,018 | INFO | Total records: 5506
+2026-08-26 17:42:42,121 | INFO | Logger initialized.
+2026-08-26 17:42:42,172 | INFO | Files in data directory: 4
+2026-08-26 17:42:42,174 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 17:42:42,175 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 17:42:42,176 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 17:42:42,178 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 17:42:42,735 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 17:42:43,913 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 17:42:44,950 | INFO | rag.xlsx: 4720 records
+2026-08-26 17:42:45,198 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 17:42:45,199 | INFO | Total records: 5506
+2026-08-26 17:58:35,035 | INFO | Logger initialized.
+2026-08-26 17:58:35,083 | INFO | Files in raw directory: 0
+2026-08-26 17:58:35,269 | INFO | Total records: 0
+2026-08-26 17:58:35,271 | INFO | Saved 0 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-08-26 18:55:17,444 | INFO | Logger initialized.
+2026-08-26 18:55:17,502 | INFO | Files in raw directory: 4
+2026-08-26 18:55:17,504 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 18:55:17,506 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 18:55:17,508 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 18:55:17,509 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 18:55:18,902 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 18:55:19,961 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 18:55:20,579 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-08-26 18:55:20,800 | INFO | rag.xlsx: 4719 records
+2026-08-26 18:55:21,242 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 18:55:21,243 | INFO | Total records: 5505
+2026-08-26 18:55:21,441 | INFO | Saved 5505 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-08-26 19:11:49,589 | INFO | Logger initialized.
+2026-08-26 19:11:49,653 | INFO | Files in raw directory: 4
+2026-08-26 19:11:49,655 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 19:11:49,657 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 19:11:49,658 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 19:11:49,659 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 19:11:50,979 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 19:11:52,012 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 19:11:52,662 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-08-26 19:11:52,889 | INFO | rag.xlsx: 4719 records
+2026-08-26 19:11:53,339 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 19:11:53,340 | INFO | Total records: 5505
+2026-08-26 19:11:53,536 | INFO | Saved 5505 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-08-26 19:47:22,180 | INFO | Logger initialized.
+2026-08-26 19:47:22,221 | INFO | Files in raw directory: 4
+2026-08-26 19:47:22,222 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 19:47:22,224 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 19:47:22,225 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 19:47:22,226 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 19:47:23,518 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 19:47:24,535 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 19:47:25,205 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-08-26 19:47:25,471 | INFO | rag.xlsx: 4719 records
+2026-08-26 19:47:25,999 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 19:47:26,000 | INFO | Total records: 5505
+2026-08-26 19:47:26,214 | INFO | Saved 5505 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-08-26 22:59:56,110 | INFO | Logger initialized.
+2026-08-26 22:59:56,164 | INFO | Files in raw directory: 4
+2026-08-26 22:59:56,165 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-08-26 22:59:56,167 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-08-26 22:59:56,168 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-08-26 22:59:56,169 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-08-26 22:59:57,755 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-08-26 22:59:58,999 | INFO | Foundation-LLMs.pdf: 277 records
+2026-08-26 22:59:59,742 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-08-26 23:00:00,005 | INFO | rag.xlsx: 4719 records
+2026-08-26 23:00:00,557 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-08-26 23:00:00,558 | INFO | Total records: 5505
+2026-08-26 23:00:00,746 | INFO | Saved 5505 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
