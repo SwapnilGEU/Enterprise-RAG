@@ -224359,13 +224359,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_32",
-    "text": "List the endoscopic diagnoses that have been reported in children with autism | Endoscopic examinations in autistic children have been reported to show : I or II reflux esophagitis, Achalasia, chronic gastritis and chronic duodenitis, mild acute and chronic inflammation of the small bowel and colorectum and Ileo-colonic lymphoid nodular hyperplasia (LNH). \nThe number of Paneth's cells in the duodenal crypts was found to be significantly elevated in autistic children compared with non-autistic control subjects. Low intestinal carbohydrate digestive enzyme activity was reported although there was no abnormality found in pancreatic function. Autistic children have ben reported to have an increased pancreatico-biliary fluid output after intravenous secretin administration. | [12907332, 9585670, 10547242, 22607127, 16003132, 11007230]",
+    "text": "List the endoscopic diagnoses that have been reported in children with autism | Endoscopic examinations in autistic children have been reported to show : I or II reflux esophagitis, Achalasia, chronic gastritis and chronic duodenitis, mild acute and chronic inflammation of the small bowel and colorectum and Ileo-colonic lymphoid nodular hyperplasia (LNH).\nThe number of Paneth's cells in the duodenal crypts was found to be significantly elevated in autistic children compared with non-autistic control subjects. Low intestinal carbohydrate digestive enzyme activity was reported although there was no abnormality found in pancreatic function. Autistic children have ben reported to have an increased pancreatico-biliary fluid output after intravenous secretin administration. | [12907332, 9585670, 10547242, 22607127, 16003132, 11007230]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 32,
       "id": 30
     },
-    "char_count": 841,
+    "char_count": 840,
     "word_count": 115,
     "line_count": 2
   },
@@ -226025,13 +226025,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_151",
-    "text": "Which are the drugs utilized for the burning mouth syndrome? | Dopaminergic drugs should be given in patients with BMS. \nCatuama reduces the symptoms of BMS and may be a novel therapeutic strategy for the treatment of this disease.\nCapsaicin, alpha-lipoic acid (ALA), and clonazepam were those that showed more reduction in symptoms of BMS.\nTreatment with placebos produced a response that was 72% as large as the response to active drugs | [18976257, 22044166, 9844361, 22040716, 17541900, 1776404, 17287703, 19837207, 11838624, 18343329, 16903201, 2811814, 22344742, 22092585, 24164777, 23772971, 1508523, 22957483, 8323246, 7629360, 11441716, 10431669, 21743413, 20415927, 18588600, 21743415, 10625850, 2726203, 22750263, 21528119, 17559486, 11871678, 20597947, 23229252, 22260804, 15210564, 1923398, 21223496, 15195716, 12536654, 18625105, 11485137, 19450321, 8725589, 8543701, 24558551, 23201368, 22612823, 12110042, 22669143, 20969436, 14765022, 19689438, 18558051, 14704612, 19658340, 23429751, 16637799, 20690412, 18548844, 17849966, 14650993, 22819057, 10425973, 9830647, 2098940]",
+    "text": "Which are the drugs utilized for the burning mouth syndrome? | Dopaminergic drugs should be given in patients with BMS.\nCatuama reduces the symptoms of BMS and may be a novel therapeutic strategy for the treatment of this disease.\nCapsaicin, alpha-lipoic acid (ALA), and clonazepam were those that showed more reduction in symptoms of BMS.\nTreatment with placebos produced a response that was 72% as large as the response to active drugs | [18976257, 22044166, 9844361, 22040716, 17541900, 1776404, 17287703, 19837207, 11838624, 18343329, 16903201, 2811814, 22344742, 22092585, 24164777, 23772971, 1508523, 22957483, 8323246, 7629360, 11441716, 10431669, 21743413, 20415927, 18588600, 21743415, 10625850, 2726203, 22750263, 21528119, 17559486, 11871678, 20597947, 23229252, 22260804, 15210564, 1923398, 21223496, 15195716, 12536654, 18625105, 11485137, 19450321, 8725589, 8543701, 24558551, 23201368, 22612823, 12110042, 22669143, 20969436, 14765022, 19689438, 18558051, 14704612, 19658340, 23429751, 16637799, 20690412, 18548844, 17849966, 14650993, 22819057, 10425973, 9830647, 2098940]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 151,
       "id": 149
     },
-    "char_count": 1089,
+    "char_count": 1088,
     "word_count": 139,
     "line_count": 4
   },
@@ -227131,13 +227131,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_230",
-    "text": "Which diseases is microRNA 132 (miR-132) implicated in? | Several targets for for miR-132 have been described and it is implicated in many diseases such as:\nneurodegenerative disease, \nepilepsy,\nschizophrenia,\nHuntington's disease (HD),\nAlzheimer's disease (AD),\nneuroinflammation,\nosteosarcoma,\nchronic lymphocytic leukemia (CLL),\nangiogenesis,\neye disease,\nalcoholic liver disease,\nprogressive supranuclear palsy (PSP taupathy),\nmild cognitive impairment. | [21136867, 23001356, 22659469, 23269581, 22315408, 22518321, 17314675, 23485811, 21807765, 23560086, 21035445, 20949564]",
+    "text": "Which diseases is microRNA 132 (miR-132) implicated in? | Several targets for for miR-132 have been described and it is implicated in many diseases such as:\nneurodegenerative disease,\nepilepsy,\nschizophrenia,\nHuntington's disease (HD),\nAlzheimer's disease (AD),\nneuroinflammation,\nosteosarcoma,\nchronic lymphocytic leukemia (CLL),\nangiogenesis,\neye disease,\nalcoholic liver disease,\nprogressive supranuclear palsy (PSP taupathy),\nmild cognitive impairment. | [21136867, 23001356, 22659469, 23269581, 22315408, 22518321, 17314675, 23485811, 21807765, 23560086, 21035445, 20949564]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 230,
       "id": 228
     },
-    "char_count": 580,
+    "char_count": 579,
     "word_count": 69,
     "line_count": 14
   },
@@ -227201,13 +227201,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_235",
-    "text": "List protein gel staining methods visualizing the entire protein set. | Several staining protocols for the visualization of proteins separated by SDS-PAGE have been described in literature: \nfluorescence\nSypro Ruby\nColloidal Coomassie Blue\nCoomassie Blue\nSilver staining\nCoomassie Brilliant Blue | [23256673, 23161123, 24136520, 23681577, 22665294, 23941326, 22821490, 23977684, 24114871, 23428344, 24043422]",
+    "text": "List protein gel staining methods visualizing the entire protein set. | Several staining protocols for the visualization of proteins separated by SDS-PAGE have been described in literature:\nfluorescence\nSypro Ruby\nColloidal Coomassie Blue\nCoomassie Blue\nSilver staining\nCoomassie Brilliant Blue | [23256673, 23161123, 24136520, 23681577, 22665294, 23941326, 22821490, 23977684, 24114871, 23428344, 24043422]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 235,
       "id": 233
     },
-    "char_count": 408,
+    "char_count": 407,
     "word_count": 52,
     "line_count": 7
   },
@@ -227425,13 +227425,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_251",
-    "text": "Does burning mouth syndrome preferentially affect post-mepopausal women? | BMS is observed principally in middle-aged patients and postmenopausal women \nBMS mostly affects elderly citizens, especially postmenopausal women with prevalence up to 12-18%. | [7838464, 6589575, 9844361, 17541900, 21685517, 16142094, 15055637, 17452954, 9237148, 18305436, 3476895, 18278306, 8469539, 21418666, 23772971, 18985004, 12618668, 12907696, 7629360, 11441716, 10431669, 12764983, 21528120, 20230455, 20440632, 23050296, 21903545, 20597947, 11871678, 10446526, 22030140, 15195716, 16905808, 19450321, 18625105, 8725589, 8170453, 22612823, 23201368, 2700889, 19689438, 17439072, 20038880, 17967714, 20701667, 19658340, 18558051, 24096230, 15024358, 16637799, 12017897, 11603307, 17849966, 10478959, 23787507, 15911160]",
+    "text": "Does burning mouth syndrome preferentially affect post-mepopausal women? | BMS is observed principally in middle-aged patients and postmenopausal women\nBMS mostly affects elderly citizens, especially postmenopausal women with prevalence up to 12-18%. | [7838464, 6589575, 9844361, 17541900, 21685517, 16142094, 15055637, 17452954, 9237148, 18305436, 3476895, 18278306, 8469539, 21418666, 23772971, 18985004, 12618668, 12907696, 7629360, 11441716, 10431669, 12764983, 21528120, 20230455, 20440632, 23050296, 21903545, 20597947, 11871678, 10446526, 22030140, 15195716, 16905808, 19450321, 18625105, 8725589, 8170453, 22612823, 23201368, 2700889, 19689438, 17439072, 20038880, 17967714, 20701667, 19658340, 18558051, 24096230, 15024358, 16637799, 12017897, 11603307, 17849966, 10478959, 23787507, 15911160]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 251,
       "id": 249
     },
-    "char_count": 804,
+    "char_count": 803,
     "word_count": 89,
     "line_count": 2
   },
@@ -227747,13 +227747,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_274",
-    "text": "List proteins of lipids droplets | perilipins\nadipose differentiation-related protein\nlipid storage droplet protein 5 \ntail-interacting protein of 47 kilodaltons \nS3-12 | [15731108, 23204327, 18202123, 20870251, 24036367, 19717842, 21420243, 19748893]",
+    "text": "List proteins of lipids droplets | perilipins\nadipose differentiation-related protein\nlipid storage droplet protein 5\ntail-interacting protein of 47 kilodaltons\nS3-12 | [15731108, 23204327, 18202123, 20870251, 24036367, 19717842, 21420243, 19748893]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 274,
       "id": 272
     },
-    "char_count": 251,
+    "char_count": 249,
     "word_count": 30,
     "line_count": 5
   },
@@ -228363,13 +228363,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_318",
-    "text": "From which tissue was the NCI-H520 cell-line derived? | Non-small cell lung cancer (NSCLC) cell line NCI-H520. \nSquamous cell carcinoma cell line NCI-H520. | [9099905, 16877704, 11830536, 23489803, 16798224, 15254679, 16820889, 14586397, 15007389, 19968287, 12964003, 9616291, 16462760, 12680874, 19700217, 11598125, 22562359, 23715514, 16549820, 18223678, 20219072, 9492037, 24040647, 8822090, 15750352, 17600088, 12851688, 18502124, 14720367, 12702576, 14965369]",
+    "text": "From which tissue was the NCI-H520 cell-line derived? | Non-small cell lung cancer (NSCLC) cell line NCI-H520.\nSquamous cell carcinoma cell line NCI-H520. | [9099905, 16877704, 11830536, 23489803, 16798224, 15254679, 16820889, 14586397, 15007389, 19968287, 12964003, 9616291, 16462760, 12680874, 19700217, 11598125, 22562359, 23715514, 16549820, 18223678, 20219072, 9492037, 24040647, 8822090, 15750352, 17600088, 12851688, 18502124, 14720367, 12702576, 14965369]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 318,
       "id": 316
     },
-    "char_count": 464,
+    "char_count": 463,
     "word_count": 55,
     "line_count": 2
   },
@@ -230281,13 +230281,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_455",
-    "text": "What are the clinical trial outcomes of metformin use in polycystic ovary disease? | Metformin treatment vs placebo significantly but modestly improves ovulation frequency in women with abnormal ovarian function/oligomenorrhea and polycystic ovaries, the lower BMI women were more likely to become pregnant. While in naturally conceiving normal weight PCOS women pre-treatment with metformin tends to improve pregnancy rates, pre-treatment with metformin prior to conventional IVF/ICSI in women with PCOS does not improve stimulation or clinical outcome.\nMetformin is an effective addition to Clomifene Citrate in term of reestablishment of ovulation and full-term pregnancies achievement.\nStudies on the effect of metformin on serum Anti-Mullerian Hormone levels /AMH concentrations bring conflicting results, from Metformin having no effect on AMH to Metformin treatment resulting in significant decrease of AMH levels, antral follicle numbers and ovarian volume. \nMetformin has been shown to cause significant weight loss (and leptin reduction) in PCOS. | [11473953, 20517830, 15117902, 15802325, 21631446, 23412023, 12364442, 19342396, 11836287]",
+    "text": "What are the clinical trial outcomes of metformin use in polycystic ovary disease? | Metformin treatment vs placebo significantly but modestly improves ovulation frequency in women with abnormal ovarian function/oligomenorrhea and polycystic ovaries, the lower BMI women were more likely to become pregnant. While in naturally conceiving normal weight PCOS women pre-treatment with metformin tends to improve pregnancy rates, pre-treatment with metformin prior to conventional IVF/ICSI in women with PCOS does not improve stimulation or clinical outcome.\nMetformin is an effective addition to Clomifene Citrate in term of reestablishment of ovulation and full-term pregnancies achievement.\nStudies on the effect of metformin on serum Anti-Mullerian Hormone levels /AMH concentrations bring conflicting results, from Metformin having no effect on AMH to Metformin treatment resulting in significant decrease of AMH levels, antral follicle numbers and ovarian volume.\nMetformin has been shown to cause significant weight loss (and leptin reduction) in PCOS. | [11473953, 20517830, 15117902, 15802325, 21631446, 23412023, 12364442, 19342396, 11836287]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 455,
       "id": 453
     },
-    "char_count": 1149,
+    "char_count": 1148,
     "word_count": 158,
     "line_count": 4
   },
@@ -230463,13 +230463,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_468",
-    "text": "What is the role of AMPK kinase in myocardial remodeling after myocardial infarction | AMP-activated protein kinase (AMPK) is a key sensor of cellular energy. The activation of AMPK by metformin prevents cardiac remodeling after myocardial infarction (MI). \nAdiponectin protects the heart from ischemia-reperfusion injury through an AMPK-dependent mechanism.\nAMPK activation by metformin and the subsequent suppression of TLRs activity could be considered as a target in protecting the infarcted heart. | [23122726, 22043210, 21572014, 22344560, 16155579]",
+    "text": "What is the role of AMPK kinase in myocardial remodeling after myocardial infarction | AMP-activated protein kinase (AMPK) is a key sensor of cellular energy. The activation of AMPK by metformin prevents cardiac remodeling after myocardial infarction (MI).\nAdiponectin protects the heart from ischemia-reperfusion injury through an AMPK-dependent mechanism.\nAMPK activation by metformin and the subsequent suppression of TLRs activity could be considered as a target in protecting the infarcted heart. | [23122726, 22043210, 21572014, 22344560, 16155579]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 468,
       "id": 466
     },
-    "char_count": 555,
+    "char_count": 554,
     "word_count": 77,
     "line_count": 3
   },
@@ -230505,13 +230505,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_471",
-    "text": "What is the treatment of neuropathic pain in children? | It is unclear if any treatment is registered for pediatric use. The reported treatments are:\nOxcarbazepine \nOpioids alone, in rotations or with Analgesics (e.g. Ketamine and Lidocaine infusion)\nOpioids and Benzodiazepines\nPregabalin - is one of the first drugs registered for the treatment of neuropathic pain. It is unclear if Pregabalin is registered for the treatment of neuropathic pain in children specifically but it is being used in practice.\nTricyclic Antidepressants\nLidocaine 5% patches for chronic localized neuropathic pain | [22401313, 11902308, 15265351, 18363625, 7561230, 22735246, 12712053, 21332246, 18820538, 22147611]",
+    "text": "What is the treatment of neuropathic pain in children? | It is unclear if any treatment is registered for pediatric use. The reported treatments are:\nOxcarbazepine\nOpioids alone, in rotations or with Analgesics (e.g. Ketamine and Lidocaine infusion)\nOpioids and Benzodiazepines\nPregabalin - is one of the first drugs registered for the treatment of neuropathic pain. It is unclear if Pregabalin is registered for the treatment of neuropathic pain in children specifically but it is being used in practice.\nTricyclic Antidepressants\nLidocaine 5% patches for chronic localized neuropathic pain | [22401313, 11902308, 15265351, 18363625, 7561230, 22735246, 12712053, 21332246, 18820538, 22147611]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 471,
       "id": 469
     },
-    "char_count": 694,
+    "char_count": 693,
     "word_count": 100,
     "line_count": 7
   },
@@ -231177,13 +231177,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_519",
-    "text": "Which JAK (Janus kinase) inhibitor is approved for treatment of rheumatoid arthritis? | Tofacitinib (or CP690.550) is an oral JAK (Janus kinase) inhibitor that is approved for treatment of rheumatoid arthritis. Tofacitinib inhibits JAK family kinase members, in particular JAK1 and JAK3, achieving a broad limitation of inflammation by interfering with several cytokine receptors. Tofacitinib has also a proven efficacy as an immunosuppressive regimen after renal transplantation. \nGLPG-0634 and INCB18424 are other JAK kinase inhibitors that are being studied for treatment of rheumatoid arthritis. | [23523202, 22252297, 23627915, 22971156, 21548952, 23642011, 19565475, 21884580, 24193189, 22374445, 24218541, 21105711, 22121136, 23212593, 22147632, 22209716, 22006202, 19587388, 24285764, 23961674, 23599436, 24013646, 21952978, 20233177, 23384668, 19404006, 20732649, 22777068, 20701804, 22460142, 22899318]",
+    "text": "Which JAK (Janus kinase) inhibitor is approved for treatment of rheumatoid arthritis? | Tofacitinib (or CP690.550) is an oral JAK (Janus kinase) inhibitor that is approved for treatment of rheumatoid arthritis. Tofacitinib inhibits JAK family kinase members, in particular JAK1 and JAK3, achieving a broad limitation of inflammation by interfering with several cytokine receptors. Tofacitinib has also a proven efficacy as an immunosuppressive regimen after renal transplantation.\nGLPG-0634 and INCB18424 are other JAK kinase inhibitors that are being studied for treatment of rheumatoid arthritis. | [23523202, 22252297, 23627915, 22971156, 21548952, 23642011, 19565475, 21884580, 24193189, 22374445, 24218541, 21105711, 22121136, 23212593, 22147632, 22209716, 22006202, 19587388, 24285764, 23961674, 23599436, 24013646, 21952978, 20233177, 23384668, 19404006, 20732649, 22777068, 20701804, 22460142, 22899318]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 519,
       "id": 517
     },
-    "char_count": 912,
+    "char_count": 911,
     "word_count": 116,
     "line_count": 2
   },
@@ -231765,13 +231765,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_561",
-    "text": "What is known about Vancomycin dosing in neonates? | Staphylococcus epidermis, including methicillin-resistant strains, are inhibited by vancomycin concentrations of 1-4 µg/ml. \nStaphylococcus pyogenes, Streptococcus pneumonia, and Streptococcus viridans are susceptible to 2 µg/ml vancomycin. \nBacillus spp. are inhibited by 2 µg/ml, Corynebacterium spp. by 0.04-3.1 µg/ml and Clostridium spp. by 0.39-6 µg/ml vancomycin. \nPeak and trough concentrations of vancomycin should be 40 μg/ml and 10 μg/ml, respectively, to both be effective and avoid oto- or nephrotoxicity in adults. There is no ideal pattern of vancomycin dosing; vancomycin dosages must be individualized. Because vancomycin activity is primarily time-dependent, the 24-h area under the curve (AUC0-24h) divided by the minimum inhibitor concentration (MIC) value (AUC0-24h/MIC) is a better predictor of efficacy. In adults with MIC values less than 1 μg/ml, trough concentrations greater than 10 µg/ml result in AUC0-24h/MIC values 400\nCompared with adults, neonates have a higher extracellular fluid volume and a limited renal elimination capacity resulting in different pharmacokinetics subject to maturation stage. Infants weighing less than 1,000 gm had significantly larger volumes of drug distribution and consequently longer drug half-lives than larger premature infants, regardless of postconceptual or actual age. These differences alter the vancomycin dosing recommendations in these two groups of premature infants.\nVancomycin-associated nephrotoxicity is rare in neonates, even with serum peak concentrations 40 microg/mL. Vancomycin is associated with ototoxicity.\nThere is no consensus on vancomycin dosing in newborns and young infants, which leads to significant variation in vancomycin dosing regimens and TDM guidance across neonatal units. The development of standardized, evidence-based protocols should be prioritized. | [21455009, 22892931, 21862473, 10103340, 22488303, 3991250, 11378679, 2630235, 10801244, 21378399]",
+    "text": "What is known about Vancomycin dosing in neonates? | Staphylococcus epidermis, including methicillin-resistant strains, are inhibited by vancomycin concentrations of 1-4 µg/ml.\nStaphylococcus pyogenes, Streptococcus pneumonia, and Streptococcus viridans are susceptible to 2 µg/ml vancomycin.\nBacillus spp. are inhibited by 2 µg/ml, Corynebacterium spp. by 0.04-3.1 µg/ml and Clostridium spp. by 0.39-6 µg/ml vancomycin.\nPeak and trough concentrations of vancomycin should be 40 μg/ml and 10 μg/ml, respectively, to both be effective and avoid oto- or nephrotoxicity in adults. There is no ideal pattern of vancomycin dosing; vancomycin dosages must be individualized. Because vancomycin activity is primarily time-dependent, the 24-h area under the curve (AUC0-24h) divided by the minimum inhibitor concentration (MIC) value (AUC0-24h/MIC) is a better predictor of efficacy. In adults with MIC values less than 1 μg/ml, trough concentrations greater than 10 µg/ml result in AUC0-24h/MIC values 400\nCompared with adults, neonates have a higher extracellular fluid volume and a limited renal elimination capacity resulting in different pharmacokinetics subject to maturation stage. Infants weighing less than 1,000 gm had significantly larger volumes of drug distribution and consequently longer drug half-lives than larger premature infants, regardless of postconceptual or actual age. These differences alter the vancomycin dosing recommendations in these two groups of premature infants.\nVancomycin-associated nephrotoxicity is rare in neonates, even with serum peak concentrations 40 microg/mL. Vancomycin is associated with ototoxicity.\nThere is no consensus on vancomycin dosing in newborns and young infants, which leads to significant variation in vancomycin dosing regimens and TDM guidance across neonatal units. The development of standardized, evidence-based protocols should be prioritized. | [21455009, 22892931, 21862473, 10103340, 22488303, 3991250, 11378679, 2630235, 10801244, 21378399]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 561,
       "id": 559
     },
-    "char_count": 2006,
+    "char_count": 2003,
     "word_count": 271,
     "line_count": 7
   },
@@ -232241,13 +232241,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_595",
-    "text": "What is Snord116? | SNORD116 is a small nucleolar (sno) RNA gene cluster (HBII-85) implicated as a major contributor the Prader-Willi phenotype. \nSNORD116 genes appears to be responsible for the major features of PWS. \nSNORD116 is a paternally expressed box C/D snoRNA gene cluster.\nThe mouse C/D box snoRNA MBII-85 (SNORD116) is processed into at least five shorter RNAs using processing sites near known functional elements of C/D box snoRNAs.\nSnord116 expression in the medial hypothalamus, particularly within nuclei that are part of feeding circuitry. High expression of Snord116 was evident in the paraventricular (PVN) and ventromedial (VMH) nuclei, but particularly prevalent in the arcuate nucleus (ARC) according to in situ hybridization. Snord116 expression level in ventral hypothalamic dissections including ARC was significantly greater (by 2-fold) than that in cortex; and its expression level in dorsal hypothalamic dissections including PVN was double that in cortex. The enhanced expression pattern of Snord116 in hypothalamic nuclei was observed at weaning and young adult stages, but less obvious neonatally when expression was significantly more widespread. Therefore the expression of Snord116 likely is regulated developmentally.\nSnord116del mice with paternally derived deletion lack expression of this snoRNA. They have early-onset postnatal growth deficiency, but normal fertility and lifespan. While pituitary structure and somatotrophs are normal, liver Igf1 mRNA is decreased. In cognitive and behavior tests, Snord116del mice are deficient in motor learning and have increased anxiety. Around three months of age, they develop hyperphagia, but stay lean on regular and high-fat diet. On reduced caloric intake, Snord116del mice maintain their weight better than wild-type littermates, excluding increased energy requirement as a cause of hyperphagia. Normal compensatory feeding after fasting, and ability to maintain body temperature in the cold indicate normal energy homeostasis regulation. Metabolic chamber studies reveal that Snord116del mice maintain energy homeostasis by altered fuel usage. Prolonged mealtime and increased circulating ghrelin indicate a defect in meal termination mechanism. Snord116del mice, the first snoRNA deletion animal model, reveal a novel role for a non-coding RNA in growth and feeding regulation. | [24311433, 22694955, 20803659, 22664655, 21880592, 20588305, 22495932, 18320030]",
+    "text": "What is Snord116? | SNORD116 is a small nucleolar (sno) RNA gene cluster (HBII-85) implicated as a major contributor the Prader-Willi phenotype.\nSNORD116 genes appears to be responsible for the major features of PWS.\nSNORD116 is a paternally expressed box C/D snoRNA gene cluster.\nThe mouse C/D box snoRNA MBII-85 (SNORD116) is processed into at least five shorter RNAs using processing sites near known functional elements of C/D box snoRNAs.\nSnord116 expression in the medial hypothalamus, particularly within nuclei that are part of feeding circuitry. High expression of Snord116 was evident in the paraventricular (PVN) and ventromedial (VMH) nuclei, but particularly prevalent in the arcuate nucleus (ARC) according to in situ hybridization. Snord116 expression level in ventral hypothalamic dissections including ARC was significantly greater (by 2-fold) than that in cortex; and its expression level in dorsal hypothalamic dissections including PVN was double that in cortex. The enhanced expression pattern of Snord116 in hypothalamic nuclei was observed at weaning and young adult stages, but less obvious neonatally when expression was significantly more widespread. Therefore the expression of Snord116 likely is regulated developmentally.\nSnord116del mice with paternally derived deletion lack expression of this snoRNA. They have early-onset postnatal growth deficiency, but normal fertility and lifespan. While pituitary structure and somatotrophs are normal, liver Igf1 mRNA is decreased. In cognitive and behavior tests, Snord116del mice are deficient in motor learning and have increased anxiety. Around three months of age, they develop hyperphagia, but stay lean on regular and high-fat diet. On reduced caloric intake, Snord116del mice maintain their weight better than wild-type littermates, excluding increased energy requirement as a cause of hyperphagia. Normal compensatory feeding after fasting, and ability to maintain body temperature in the cold indicate normal energy homeostasis regulation. Metabolic chamber studies reveal that Snord116del mice maintain energy homeostasis by altered fuel usage. Prolonged mealtime and increased circulating ghrelin indicate a defect in meal termination mechanism. Snord116del mice, the first snoRNA deletion animal model, reveal a novel role for a non-coding RNA in growth and feeding regulation. | [24311433, 22694955, 20803659, 22664655, 21880592, 20588305, 22495932, 18320030]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 595,
       "id": 593
     },
-    "char_count": 2447,
+    "char_count": 2445,
     "word_count": 345,
     "line_count": 6
   },
@@ -232451,13 +232451,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_610",
-    "text": "List all clinical trials of the polypill. | 'Use of a Multidrug Pill In Reducing cardiovascular Events' (UMPIRE) trial, European Clinical Trials database, as EudraCT: 2009-016278-34 and the Clinical Trials Registry, India as CTRI/2010/091/000250.\n'IMProving Adherence using Combination Therapy (IMPACT)', Australian New Zealand Clinical Trial Registry (ACTRN12606000067572).\n'Kanyini Guidelines Adherence with the Polypill (Kanyini-GAP)'\nPhase II study of the Polycap, double-blind, randomised trial, registered with ClinicalTrials.gov, number NCT00443794\nSecond Indian Polycap Study, TIPS-2\nCluster Randomized Usual Care vs Caduet Investigation Assessing Long-term-risk (CRUCIAL trial)\nGEMINI trial, 14-week, open-label trial conducted in 1220 patients from the USA\nGEMINI-Australia, Asia, Latin America, Africa/Middle East (AALA) study \nJEWEL study program, with JEWEL 1 conducted among 1138 patients from the UK and Canada and JEWEL 2 conducted in 1107 patients from Europe\nCAPABLE54, the Clinical Utility of Caduet in Simultaneously Achieving Blood Pressure and Lipid End Points , in the USA\nCUSP (The Caduet® in an Untreated Subject Population trial)\nTOGETHER trial\nA randomised controlled trial in seven countries – Australia, Brazil, India, Netherlands , New Zealand , United Kingdom and United States. Australian New Zealand Clinical Trials Registry (ACTRN 12607000099426) | [21647425, 18227490, 19339045, 21777702, 20687931, 21205325, 20334446, 23038750, 15670547, 22162939, 21682553, 22787067, 16479100, 15830173, 22080542]",
+    "text": "List all clinical trials of the polypill. | 'Use of a Multidrug Pill In Reducing cardiovascular Events' (UMPIRE) trial, European Clinical Trials database, as EudraCT: 2009-016278-34 and the Clinical Trials Registry, India as CTRI/2010/091/000250.\n'IMProving Adherence using Combination Therapy (IMPACT)', Australian New Zealand Clinical Trial Registry (ACTRN12606000067572).\n'Kanyini Guidelines Adherence with the Polypill (Kanyini-GAP)'\nPhase II study of the Polycap, double-blind, randomised trial, registered with ClinicalTrials.gov, number NCT00443794\nSecond Indian Polycap Study, TIPS-2\nCluster Randomized Usual Care vs Caduet Investigation Assessing Long-term-risk (CRUCIAL trial)\nGEMINI trial, 14-week, open-label trial conducted in 1220 patients from the USA\nGEMINI-Australia, Asia, Latin America, Africa/Middle East (AALA) study\nJEWEL study program, with JEWEL 1 conducted among 1138 patients from the UK and Canada and JEWEL 2 conducted in 1107 patients from Europe\nCAPABLE54, the Clinical Utility of Caduet in Simultaneously Achieving Blood Pressure and Lipid End Points , in the USA\nCUSP (The Caduet® in an Untreated Subject Population trial)\nTOGETHER trial\nA randomised controlled trial in seven countries – Australia, Brazil, India, Netherlands , New Zealand , United Kingdom and United States. Australian New Zealand Clinical Trials Registry (ACTRN 12607000099426) | [21647425, 18227490, 19339045, 21777702, 20687931, 21205325, 20334446, 23038750, 15670547, 22162939, 21682553, 22787067, 16479100, 15830173, 22080542]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 610,
       "id": 608
     },
-    "char_count": 1533,
+    "char_count": 1532,
     "word_count": 203,
     "line_count": 13
   },
@@ -233137,13 +233137,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_659",
-    "text": "List all reported treatment options for anxiety in autism spectrum disorder. | The predominant approach is to use versions of cognitive behavioural therapies, such as:\nMindfulness Based Therapy (MBT)\nMultimodal Anxiety and Social Skills Intervention (MASSI) program\nmodified version of the Coping Cat program, (cognitive-behavioral therapy; CBT)\nFamily cognitive-behavioral therapy has been found to be more effective than Individual cognitive-behavioral therapy \nConflict management for couples, even when conflict and family distress is low\n\nDrugtherapy: \nSertraline | [22964266, 20694508, 18437549, 23118256, 21571763, 17171539, 22934167, 22735897, 22299802, 22588377]",
+    "text": "List all reported treatment options for anxiety in autism spectrum disorder. | The predominant approach is to use versions of cognitive behavioural therapies, such as:\nMindfulness Based Therapy (MBT)\nMultimodal Anxiety and Social Skills Intervention (MASSI) program\nmodified version of the Coping Cat program, (cognitive-behavioral therapy; CBT)\nFamily cognitive-behavioral therapy has been found to be more effective than Individual cognitive-behavioral therapy\nConflict management for couples, even when conflict and family distress is low\n\nDrugtherapy:\nSertraline | [22964266, 20694508, 18437549, 23118256, 21571763, 17171539, 22934167, 22735897, 22299802, 22588377]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 659,
       "id": 657
     },
-    "char_count": 671,
+    "char_count": 669,
     "word_count": 86,
     "line_count": 9
   },
@@ -233655,13 +233655,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_696",
-    "text": "Is there a phylogenetic analysis for HIV? | In biology, phylogenetics is the study of evolutionary relationships among groups of organisms (e.g. species, populations), which are discovered through molecular sequencing data and morphological data matrices. The result of phylogenetic studies is a hypothesis about the evolutionary history of taxonomic groups: their phylogeny. \nPhylogenetic analysis examines small differences in HIV’s genes using computational methods to calculate the genetic distance between strains. Unlike\nhuman DNA, which remains stable for a lifetime, HIV’s RNA changes very rapidly, leading to a huge amount of genetic diversity. This diversity means that scientists, using phylogenetic analysis, have been able to ascertain where HIV comes from, as well as track the various strains of HIV that exist worldwide.\nBased on results, there are found many studies on HIV phylogenetic analysis. | [24223905, 22903393, 22924643, 23555203, 22899432, 22978157, 24273040, 24171696, 22981618, 22162803, 24205972, 23015735, 19245688, 22918554, 23555898, 24220189, 22996031]",
+    "text": "Is there a phylogenetic analysis for HIV? | In biology, phylogenetics is the study of evolutionary relationships among groups of organisms (e.g. species, populations), which are discovered through molecular sequencing data and morphological data matrices. The result of phylogenetic studies is a hypothesis about the evolutionary history of taxonomic groups: their phylogeny.\nPhylogenetic analysis examines small differences in HIV’s genes using computational methods to calculate the genetic distance between strains. Unlike\nhuman DNA, which remains stable for a lifetime, HIV’s RNA changes very rapidly, leading to a huge amount of genetic diversity. This diversity means that scientists, using phylogenetic analysis, have been able to ascertain where HIV comes from, as well as track the various strains of HIV that exist worldwide.\nBased on results, there are found many studies on HIV phylogenetic analysis. | [24223905, 22903393, 22924643, 23555203, 22899432, 22978157, 24273040, 24171696, 22981618, 22162803, 24205972, 23015735, 19245688, 22918554, 23555898, 24220189, 22996031]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 696,
       "id": 694
     },
-    "char_count": 1086,
+    "char_count": 1085,
     "word_count": 151,
     "line_count": 4
   },
@@ -234033,13 +234033,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_723",
-    "text": "List clinical trials for prevention of sarcopenia | Several clinical trials with androgen replacement therapy. \nStudy was to evaluate the effect of omega-3 fatty acid supplementation on the rate of muscle protein synthesis. This trial was registered at clinical trials.gov as NCT00794079 | [21968872, 21159787, 22739566, 18615229, 23892221]",
+    "text": "List clinical trials for prevention of sarcopenia | Several clinical trials with androgen replacement therapy.\nStudy was to evaluate the effect of omega-3 fatty acid supplementation on the rate of muscle protein synthesis. This trial was registered at clinical trials.gov as NCT00794079 | [21968872, 21159787, 22739566, 18615229, 23892221]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 723,
       "id": 721
     },
-    "char_count": 340,
+    "char_count": 339,
     "word_count": 48,
     "line_count": 2
   },
@@ -235041,13 +235041,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_795",
-    "text": "How does thyroid hormone regulate SR-Ca2+ ATPase (SERCA) protein in the heart? | The thyroid hormone (TH) induced regulation of SERCA is mediated both by non-genomic and genomic actions.\nGenomic actions are mediated by the binding of T(3) receptors (TRs) to the thyroid response elements in the SERCA promotor and result in increased gene expression. \nThyroid hormone increases the transcription of SERCA 2 through three thyroid hormone response elements. \nData show that the regulation of cardiac SERCA by thyroid hormone is made at the pretranslational and possibly transcriptional level \nTRβ1 is shown to be coupled to the expression of SERCA in the heart\nAn increase of TR expression in the hypertrophied heart has been show to result in increased SERCA expression.\nInhibition of TRα1 by dronedarone does not change the expression of SERCA in the heart\nFindings show that SERCA 2 gene expression is regulated by TR isoform-specific interactions with transcription factor (MEF-2) \nHypothyroidism is accompanied by decreased expression of SERCA in the heart. T3 increases expression of the cardiac SERCA\nTH treatment can reverse the reduction in the ratio of SERCA to phospholamban expression which is found in postinfarcted hearts\nTH treatment results in increased expression of SERCA in hearts from banded rats | [17317766, 15687816, 11470472, 15242794, 9312172, 16595628, 20232113, 10198194, 1827123, 17560116, 11577024, 8779840, 2142022, 18658259, 11145561, 8977381, 14704232, 22975595, 1415533, 18274800]",
+    "text": "How does thyroid hormone regulate SR-Ca2+ ATPase (SERCA) protein in the heart? | The thyroid hormone (TH) induced regulation of SERCA is mediated both by non-genomic and genomic actions.\nGenomic actions are mediated by the binding of T(3) receptors (TRs) to the thyroid response elements in the SERCA promotor and result in increased gene expression.\nThyroid hormone increases the transcription of SERCA 2 through three thyroid hormone response elements.\nData show that the regulation of cardiac SERCA by thyroid hormone is made at the pretranslational and possibly transcriptional level\nTRβ1 is shown to be coupled to the expression of SERCA in the heart\nAn increase of TR expression in the hypertrophied heart has been show to result in increased SERCA expression.\nInhibition of TRα1 by dronedarone does not change the expression of SERCA in the heart\nFindings show that SERCA 2 gene expression is regulated by TR isoform-specific interactions with transcription factor (MEF-2)\nHypothyroidism is accompanied by decreased expression of SERCA in the heart. T3 increases expression of the cardiac SERCA\nTH treatment can reverse the reduction in the ratio of SERCA to phospholamban expression which is found in postinfarcted hearts\nTH treatment results in increased expression of SERCA in hearts from banded rats | [17317766, 15687816, 11470472, 15242794, 9312172, 16595628, 20232113, 10198194, 1827123, 17560116, 11577024, 8779840, 2142022, 18658259, 11145561, 8977381, 14704232, 22975595, 1415533, 18274800]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 795,
       "id": 793
     },
-    "char_count": 1511,
+    "char_count": 1507,
     "word_count": 225,
     "line_count": 11
   },
@@ -235279,13 +235279,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_812",
-    "text": "In what proportion of children with heart failure has Enalapril been shown to be safe and effective? | In children with heart failure evidence of the effect of enalapril is empirical. Enalapril was clinically safe and effective in 50% to 80% of for children with cardiac failure secondary to congenital heart malformations before and after cardiac surgery, impaired ventricular function , valvar regurgitation, congestive cardiomyopathy, , arterial hypertension, life-threatening arrhythmias coexisting with circulatory insufficiency. \nACE inhibitors have shown a transient beneficial effect on heart failure due to anticancer drugs and possibly a beneficial effect in muscular dystrophy-associated cardiomyopathy, which deserves further studies. | [23124387, 14990637, 1318542, 12454107, 9315539, 8110005, 9381720, 7576410, 8512763, 12530495]",
+    "text": "In what proportion of children with heart failure has Enalapril been shown to be safe and effective? | In children with heart failure evidence of the effect of enalapril is empirical. Enalapril was clinically safe and effective in 50% to 80% of for children with cardiac failure secondary to congenital heart malformations before and after cardiac surgery, impaired ventricular function , valvar regurgitation, congestive cardiomyopathy, , arterial hypertension, life-threatening arrhythmias coexisting with circulatory insufficiency.\nACE inhibitors have shown a transient beneficial effect on heart failure due to anticancer drugs and possibly a beneficial effect in muscular dystrophy-associated cardiomyopathy, which deserves further studies. | [23124387, 14990637, 1318542, 12454107, 9315539, 8110005, 9381720, 7576410, 8512763, 12530495]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 812,
       "id": 810
     },
-    "char_count": 843,
+    "char_count": 842,
     "word_count": 113,
     "line_count": 2
   },
@@ -235349,13 +235349,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_817",
-    "text": "Is indicated the use of antioxidant supplements in patients at risk for coronary artery disease? | antioxidant supplementation \nHowever there are no clear evidencies on the clinical and prognostic benefit of this supplementation. \nCurrently there areno recommendation for the antioxidant therapy in patients with coronary artery disease.\nCurrently the American Heart Association recommends consumption of a balanced diet with emphasis on antioxidant-rich fruits and vegetables but does not recommend antioxidant supplementation for the general population. | [9430400, 24489984, 12675072, 12090883, 9877124, 19774218, 9849356, 21996047, 15531665, 11089430, 10600089, 15567903, 15693087, 10575394, 9164706, 9193380, 11192356, 12741415, 23022248, 10812586, 12069675, 20350251, 10656300, 23335472, 16603825, 10639540, 9659191, 7977015, 10696633, 19033020, 18277182, 18377792, 10498115, 17275460, 8602181, 23055813, 8570438, 8472392, 21115589, 10386507, 10987596, 8650957, 22645453, 18460663, 10077397, 11944023, 15302616, 12492632, 8946266, 9746269, 8164066, 22293859, 15585762, 8479463, 10329064, 9723625, 8479464, 10711786, 12968298, 23877741, 18548846, 22254063, 20400494, 23833580, 11702901, 22342390, 12204790, 15153272, 15117174, 12732794, 19859067, 7695869]",
+    "text": "Is indicated the use of antioxidant supplements in patients at risk for coronary artery disease? | antioxidant supplementation\nHowever there are no clear evidencies on the clinical and prognostic benefit of this supplementation.\nCurrently there areno recommendation for the antioxidant therapy in patients with coronary artery disease.\nCurrently the American Heart Association recommends consumption of a balanced diet with emphasis on antioxidant-rich fruits and vegetables but does not recommend antioxidant supplementation for the general population. | [9430400, 24489984, 12675072, 12090883, 9877124, 19774218, 9849356, 21996047, 15531665, 11089430, 10600089, 15567903, 15693087, 10575394, 9164706, 9193380, 11192356, 12741415, 23022248, 10812586, 12069675, 20350251, 10656300, 23335472, 16603825, 10639540, 9659191, 7977015, 10696633, 19033020, 18277182, 18377792, 10498115, 17275460, 8602181, 23055813, 8570438, 8472392, 21115589, 10386507, 10987596, 8650957, 22645453, 18460663, 10077397, 11944023, 15302616, 12492632, 8946266, 9746269, 8164066, 22293859, 15585762, 8479463, 10329064, 9723625, 8479464, 10711786, 12968298, 23877741, 18548846, 22254063, 20400494, 23833580, 11702901, 22342390, 12204790, 15153272, 15117174, 12732794, 19859067, 7695869]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 817,
       "id": 815
     },
-    "char_count": 1260,
+    "char_count": 1258,
     "word_count": 148,
     "line_count": 4
   },
@@ -235461,13 +235461,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_825",
-    "text": "Magnetic beads has been used in numerous applications. List some coatings used. | aptamers\nenzymes\nstreptavidin\nconcanavalin A\ncarboxylic-modified \nTiO2\nantibodies\nSELEX library\nsynthesized DNA\nC18\nC8\noligo(dT) | [24224000, 23540244, 22841112, 22903707, 23378340, 23176741, 23326761, 23877419, 23149231, 23411631, 23598134, 24291643, 22796092, 23401153, 23971905, 23934803, 23746403, 23143268, 24148457, 23174509, 23257838, 23928048, 23021809, 23850993, 23845492, 23501439]",
+    "text": "Magnetic beads has been used in numerous applications. List some coatings used. | aptamers\nenzymes\nstreptavidin\nconcanavalin A\ncarboxylic-modified\nTiO2\nantibodies\nSELEX library\nsynthesized DNA\nC18\nC8\noligo(dT) | [24224000, 23540244, 22841112, 22903707, 23378340, 23176741, 23326761, 23877419, 23149231, 23411631, 23598134, 24291643, 22796092, 23401153, 23971905, 23934803, 23746403, 23143268, 24148457, 23174509, 23257838, 23928048, 23021809, 23850993, 23845492, 23501439]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 825,
       "id": 823
     },
-    "char_count": 473,
+    "char_count": 472,
     "word_count": 55,
     "line_count": 12
   },
@@ -236035,13 +236035,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_866",
-    "text": "How functional connectivity of the default mode network changes in patients with disorders of consciousness? | Functional connectivity in the default mode network (DMN) is reduced in patients with different disorders of consciousness, and correlates with the level of consciousness. \nSpecifically, functional connectivity in the default mode network was shown to be absent in brain death patients, extremely low in vegetative state patients and slightly decreased in minimally conscious state patients when compared to healthy subjects. Therefore, functional connectivity in the default mode network was suggested to be valuable in differentiating patients with different disorders of consciousness. Clinically, functional connectivity in the default mode network was also shown to be an indicator of the extent of cortical disruption and predict reversible impairments in consciousness. | [22218274, 22418054, 19289479, 22563263, 22039473, 22905075, 21191476, 23034909, 22623966, 21693087]",
+    "text": "How functional connectivity of the default mode network changes in patients with disorders of consciousness? | Functional connectivity in the default mode network (DMN) is reduced in patients with different disorders of consciousness, and correlates with the level of consciousness.\nSpecifically, functional connectivity in the default mode network was shown to be absent in brain death patients, extremely low in vegetative state patients and slightly decreased in minimally conscious state patients when compared to healthy subjects. Therefore, functional connectivity in the default mode network was suggested to be valuable in differentiating patients with different disorders of consciousness. Clinically, functional connectivity in the default mode network was also shown to be an indicator of the extent of cortical disruption and predict reversible impairments in consciousness. | [22218274, 22418054, 19289479, 22563263, 22039473, 22905075, 21191476, 23034909, 22623966, 21693087]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 866,
       "id": 864
     },
-    "char_count": 990,
+    "char_count": 989,
     "word_count": 135,
     "line_count": 2
   },
@@ -236945,13 +236945,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_931",
-    "text": "What type of enzyme is peroxiredoxin 2 (PRDX2)? | Peroxiredoxin 2 (PRDX2) is an antioxidant enzyme that uses cysteine residues to decompose peroxides. \nPeroxiredoxin-2 (PRDX2), an enzyme reducing hydrogen peroxide and lipid peroxides \nPeroxiredoxin 2 (Prx2) is a thiol-dependent peroxidase. | [23889121, 19375361, 12943237, 19812325, 18479207, 17522089, 23749642, 20646000, 19969073, 17105810, 21902453, 22916248, 18222042, 22989627, 21248284, 21083423]",
+    "text": "What type of enzyme is peroxiredoxin 2 (PRDX2)? | Peroxiredoxin 2 (PRDX2) is an antioxidant enzyme that uses cysteine residues to decompose peroxides.\nPeroxiredoxin-2 (PRDX2), an enzyme reducing hydrogen peroxide and lipid peroxides\nPeroxiredoxin 2 (Prx2) is a thiol-dependent peroxidase. | [23889121, 19375361, 12943237, 19812325, 18479207, 17522089, 23749642, 20646000, 19969073, 17105810, 21902453, 22916248, 18222042, 22989627, 21248284, 21083423]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 931,
       "id": 929
     },
-    "char_count": 453,
+    "char_count": 451,
     "word_count": 57,
     "line_count": 3
   },
@@ -236973,13 +236973,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_933",
-    "text": "Why graphics processing units (GPU) are more suitable for biological tasks than central processing units (CPU)? | Traditional central processing unist (CPUs) are reaching their limit in processing power and are not designed primarily for multithreaded applications. Graphics processing units (GPUs) on the other hand are affordable, scalable computer powerhouses that, thanks to the ever increasing demand for higher quality graphics, have yet to reach their limit. Typically high-end CPUs have 8-16 cores, whereas GPUs can have more than 2,500 cores. GPUs are also, by design, highly parallel, multicore and multithreaded, able of handling thousands of threads doing the same calculation on different subsets of a large data set. This ability is what makes them perfectly suited for biological analysis tasks. Lately this potential has been realized by many bioinformatics researches and a huge variety of tools and algorithms have been ported to GPUs, or designed from the ground up to maximize the usage \nof available cores. | [20589122, 22149859, 23281733, 21357575, 20715052, 22537298, 18070356, 23391255, 20357844, 22759575, 18061402]",
+    "text": "Why graphics processing units (GPU) are more suitable for biological tasks than central processing units (CPU)? | Traditional central processing unist (CPUs) are reaching their limit in processing power and are not designed primarily for multithreaded applications. Graphics processing units (GPUs) on the other hand are affordable, scalable computer powerhouses that, thanks to the ever increasing demand for higher quality graphics, have yet to reach their limit. Typically high-end CPUs have 8-16 cores, whereas GPUs can have more than 2,500 cores. GPUs are also, by design, highly parallel, multicore and multithreaded, able of handling thousands of threads doing the same calculation on different subsets of a large data set. This ability is what makes them perfectly suited for biological analysis tasks. Lately this potential has been realized by many bioinformatics researches and a huge variety of tools and algorithms have been ported to GPUs, or designed from the ground up to maximize the usage\nof available cores. | [20589122, 22149859, 23281733, 21357575, 20715052, 22537298, 18070356, 23391255, 20357844, 22759575, 18061402]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 933,
       "id": 931
     },
-    "char_count": 1140,
+    "char_count": 1139,
     "word_count": 169,
     "line_count": 2
   },
@@ -238471,13 +238471,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1040",
-    "text": "What are the indications for alteplase? | Intravenous alteplase (recombinant tissue plasminogen activator) is the only approved thrombolytic agent at present indicated for acute ischaemic stoke.\nFood and Drug Administration approval of alteplase for central venous catheter (CVC) occlusions. \nAlteplase is now firmly established as a treatment of choice in the management of acute myocardial infarction. The efficacy of intravenous alteplase in the treatment of pulmonary thromboembolism has also been established and appears to be similar to that of streptokinase and urokinase in this indication and in arterial thrombotic occlusion. However, its use in this latter indication and in other vascular disorders has not been as extensively documented. \nPreliminary data suggest efficacy of alteplase of deep vein thrombosis and arterial thrombotic occlusion. | [7579782, 19804685, 7549071, 11772304, 10172049, 11919252, 9385884, 23336348, 8521760, 11794977, 23251746, 11778213, 23463740, 17656661, 1641820, 23727456, 15532135, 10581997, 12450926, 2689138]",
+    "text": "What are the indications for alteplase? | Intravenous alteplase (recombinant tissue plasminogen activator) is the only approved thrombolytic agent at present indicated for acute ischaemic stoke.\nFood and Drug Administration approval of alteplase for central venous catheter (CVC) occlusions.\nAlteplase is now firmly established as a treatment of choice in the management of acute myocardial infarction. The efficacy of intravenous alteplase in the treatment of pulmonary thromboembolism has also been established and appears to be similar to that of streptokinase and urokinase in this indication and in arterial thrombotic occlusion. However, its use in this latter indication and in other vascular disorders has not been as extensively documented.\nPreliminary data suggest efficacy of alteplase of deep vein thrombosis and arterial thrombotic occlusion. | [7579782, 19804685, 7549071, 11772304, 10172049, 11919252, 9385884, 23336348, 8521760, 11794977, 23251746, 11778213, 23463740, 17656661, 1641820, 23727456, 15532135, 10581997, 12450926, 2689138]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1040,
       "id": 1038
     },
-    "char_count": 1054,
+    "char_count": 1052,
     "word_count": 143,
     "line_count": 4
   },
@@ -238919,13 +238919,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1072",
-    "text": "How is yellow fever virus transmitted? | Yellow fever virus is transmitted by mosquitoes and is restricted to Africa, Central and South America and the Caribbean. \nYellow fever virus is a flavivirus, and there is only one antigenic type. It was taken to the Americas by the early slave traders, and nowadays reported in Africa, America, Asia and Europe. Yellow fever virus is transmitted by two different cycles: \n-from human to human by the mosquito Aedes aegypti; which is well-adapted to breeding around human habitations; the infection can be maintained in this way as ‘urban’ yellow fever.\n-from infected monkeys to humans by mosquitoes such as Haemagogus. This is ‘jungle’ yellow fever and is seen in Africa and South America.\n\nYellow fever is not transmitted directly from human to human by day-to-day contact, but transmission from ill patients to healthcare workers has been reported, notably after needlestick injury. | [23697028, 21413253, 20513550, 23411863, 22897918, 18645665, 23740065, 21199140, 16913829, 21723310, 23980723, 24027319, 20874041, 21143108, 22264275, 24056028, 22594140, 23133693, 16707042, 23523817, 15705322, 22377581, 22999801, 22966141, 23967358]",
+    "text": "How is yellow fever virus transmitted? | Yellow fever virus is transmitted by mosquitoes and is restricted to Africa, Central and South America and the Caribbean.\nYellow fever virus is a flavivirus, and there is only one antigenic type. It was taken to the Americas by the early slave traders, and nowadays reported in Africa, America, Asia and Europe. Yellow fever virus is transmitted by two different cycles:\n-from human to human by the mosquito Aedes aegypti; which is well-adapted to breeding around human habitations; the infection can be maintained in this way as ‘urban’ yellow fever.\n-from infected monkeys to humans by mosquitoes such as Haemagogus. This is ‘jungle’ yellow fever and is seen in Africa and South America.\n\nYellow fever is not transmitted directly from human to human by day-to-day contact, but transmission from ill patients to healthcare workers has been reported, notably after needlestick injury. | [23697028, 21413253, 20513550, 23411863, 22897918, 18645665, 23740065, 21199140, 16913829, 21723310, 23980723, 24027319, 20874041, 21143108, 22264275, 24056028, 22594140, 23133693, 16707042, 23523817, 15705322, 22377581, 22999801, 22966141, 23967358]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1072,
       "id": 1070
     },
-    "char_count": 1180,
+    "char_count": 1178,
     "word_count": 174,
     "line_count": 6
   },
@@ -239535,13 +239535,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1116",
-    "text": "Which protein complexes contain mitofilin? | mitochondrial inter-membrane space bridging (MIB) complex \nmitochondrial inner membrane organizing system (MINOS)\nMitOS for mitochondrial organizing structure | [22252321, 22918945, 22496419, 23704930, 21944719, 21987634, 22575891, 22014515, 23676277, 24030101]",
+    "text": "Which protein complexes contain mitofilin? | mitochondrial inter-membrane space bridging (MIB) complex\nmitochondrial inner membrane organizing system (MINOS)\nMitOS for mitochondrial organizing structure | [22252321, 22918945, 22496419, 23704930, 21944719, 21987634, 22575891, 22014515, 23676277, 24030101]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1116,
       "id": 1114
     },
-    "char_count": 306,
+    "char_count": 305,
     "word_count": 34,
     "line_count": 3
   },
@@ -240361,13 +240361,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1175",
-    "text": "Do Parkinson's disease patients experience stridor? | Yes. Stridor has been described in Parkinon's disease patients. Stridor has been linked to deep brain stimulation and L-Dopa medication use. \nHowever, stridor was shown to be more common in multiple system atrophy patients. | [14703107, 12023429, 19010952, 20003593, 6622345, 16575624, 10391085, 19628429, 8353712, 21819188, 7651445, 7785431, 20205147, 12884831]",
+    "text": "Do Parkinson's disease patients experience stridor? | Yes. Stridor has been described in Parkinon's disease patients. Stridor has been linked to deep brain stimulation and L-Dopa medication use.\nHowever, stridor was shown to be more common in multiple system atrophy patients. | [14703107, 12023429, 19010952, 20003593, 6622345, 16575624, 10391085, 19628429, 8353712, 21819188, 7651445, 7785431, 20205147, 12884831]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1175,
       "id": 1173
     },
-    "char_count": 416,
+    "char_count": 415,
     "word_count": 56,
     "line_count": 2
   },
@@ -242139,13 +242139,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1302",
-    "text": "What is known about diseases associated with mutations in the CHCHD10 gene? | Mutation c.197G>T p.G66V in CHCHD10 is the cause of the lower motor neuron syndrome LOSMoN/SMAJ. \nMutations in the CHCHD10 gene have been identified in a large family with a complex phenotype variably associating frontotemporal dementia (FTD) with amyotrophic lateral sclerosis (ALS), cerebellar ataxia, myopathy, and hearing impairment.\nOther findings links CHCHD10 mutations to mitochondrial myopathy. | [24934289, 25155093, 25428574, 25193783]",
+    "text": "What is known about diseases associated with mutations in the CHCHD10 gene? | Mutation c.197G>T p.G66V in CHCHD10 is the cause of the lower motor neuron syndrome LOSMoN/SMAJ.\nMutations in the CHCHD10 gene have been identified in a large family with a complex phenotype variably associating frontotemporal dementia (FTD) with amyotrophic lateral sclerosis (ALS), cerebellar ataxia, myopathy, and hearing impairment.\nOther findings links CHCHD10 mutations to mitochondrial myopathy. | [24934289, 25155093, 25428574, 25193783]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1302,
       "id": 1300
     },
-    "char_count": 524,
+    "char_count": 523,
     "word_count": 73,
     "line_count": 3
   },
@@ -242335,13 +242335,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1316",
-    "text": "List bacteria that may be useful in uranium bioremediation. | The main bacteria studied in uranium bioremediation are Geobacteraceae. Other bacteria are: \nFirmicutes, \nShewanella oneidensis\nPseudomonas aeruginosa\nAnaeromyxobacter dehalogenans \nstrain Rf4T | [19717633, 18450691, 18497157, 16204552, 19129865, 20010635, 22510989, 22432531, 18843300, 11976101, 23416228, 18378664, 22327592, 19346346, 12788780, 12368813, 12626092, 23446832, 18279349, 15819846, 23894087, 21255372, 23038171, 19651424, 21261921, 18059491, 18451051, 21337330, 21112694, 23275510]",
+    "text": "List bacteria that may be useful in uranium bioremediation. | The main bacteria studied in uranium bioremediation are Geobacteraceae. Other bacteria are:\nFirmicutes,\nShewanella oneidensis\nPseudomonas aeruginosa\nAnaeromyxobacter dehalogenans\nstrain Rf4T | [19717633, 18450691, 18497157, 16204552, 19129865, 20010635, 22510989, 22432531, 18843300, 11976101, 23416228, 18378664, 22327592, 19346346, 12788780, 12368813, 12626092, 23446832, 18279349, 15819846, 23894087, 21255372, 23038171, 19651424, 21261921, 18059491, 18451051, 21337330, 21112694, 23275510]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1316,
       "id": 1314
     },
-    "char_count": 558,
+    "char_count": 555,
     "word_count": 62,
     "line_count": 6
   },
@@ -242517,13 +242517,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1329",
-    "text": "Which major signaling pathways are regulated by RIP1? | necroptosis\napoptosis \npro-survival/inflammation NF-κB activation | [25326752, 24874734, 23674612, 25767797, 24224954, 25391899, 24460252]",
+    "text": "Which major signaling pathways are regulated by RIP1? | necroptosis\napoptosis\npro-survival/inflammation NF-κB activation | [25326752, 24874734, 23674612, 25767797, 24224954, 25391899, 24460252]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1329,
       "id": 1327
     },
-    "char_count": 194,
+    "char_count": 193,
     "word_count": 22,
     "line_count": 3
   },
@@ -242965,13 +242965,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1361",
-    "text": "What is the role of TRH in hypertension? | TRH gene overexpression induces hypertension in normal rats and spontaneously hypertensive rats have central TRH hyperactivity with increased TRH synthesis and release and an elevated TRH receptor number. TRH antisense treatment reduces hypertension.\ncentral TRH participates in the hypertension induced by body weight gain probably through its well-known action on sympathetic activity.\nthe pressor effect of intravenous TRH is mediated primarily by a stimulation of alpha-adrenergic receptors. Activation of cardiac beta-adrenoceptors seems to contribute to the blood pressure increasing effect of intravenous TRH. Ang II system is involved in the TRH cardiovascular effects. \nPolymorphisms in TRH (thyrotropin-releasing hormone) are significantly associated with both blood pressure variation and hypertension.\nTRH may mediate the central leptin-induced hypertension effect\nA parallel increase in the density of brain TRH receptors with elevation of blood pressure has been shown and suggests that brain TRH receptors may play an important role in the pathophysiology of hypertension. TRH Receptor gene participates in the etiopathogenesis of essential hypertension. | [2854272, 7554113, 7498977, 17137217, 11882596, 11566956, 8039276, 17227965, 3035513, 1595355, 11230301]",
+    "text": "What is the role of TRH in hypertension? | TRH gene overexpression induces hypertension in normal rats and spontaneously hypertensive rats have central TRH hyperactivity with increased TRH synthesis and release and an elevated TRH receptor number. TRH antisense treatment reduces hypertension.\ncentral TRH participates in the hypertension induced by body weight gain probably through its well-known action on sympathetic activity.\nthe pressor effect of intravenous TRH is mediated primarily by a stimulation of alpha-adrenergic receptors. Activation of cardiac beta-adrenoceptors seems to contribute to the blood pressure increasing effect of intravenous TRH. Ang II system is involved in the TRH cardiovascular effects.\nPolymorphisms in TRH (thyrotropin-releasing hormone) are significantly associated with both blood pressure variation and hypertension.\nTRH may mediate the central leptin-induced hypertension effect\nA parallel increase in the density of brain TRH receptors with elevation of blood pressure has been shown and suggests that brain TRH receptors may play an important role in the pathophysiology of hypertension. TRH Receptor gene participates in the etiopathogenesis of essential hypertension. | [2854272, 7554113, 7498977, 17137217, 11882596, 11566956, 8039276, 17227965, 3035513, 1595355, 11230301]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1361,
       "id": 1359
     },
-    "char_count": 1319,
+    "char_count": 1318,
     "word_count": 181,
     "line_count": 6
   },
@@ -243161,13 +243161,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1375",
-    "text": "List co-morbidities that may occur together with \"Stiff man Syndrome\" | SMS (Stiff man Syndrome) is is a rare disorder of the central nervous system of probable autoimmune origin and as such is associated with other autoimmune diseases, such as Insulin Dependent Diabetes Mellitus . GAD-65 is a dominant auto-antigen that is found both in in stiff-man syndrome and insulin-dependent diabetes mellitus. TRAB -positive Graves' disease has been reported to occur together with SMS. \nIn a subgroup of patients with the stiff-man syndrome, the condition is likely to have an autoimmune paraneoplastic origin. The detection of autoantibodies against the 128-kd antigen in patients with this syndrome should be considered an indication to search for an occult breast cancer.\n\nHCV may be the etiologic virus of progressive encephalomyelitis with rigidity; a rare disorder similar to stiff-man syndrome although different because it is progressive and fatal.\nIt is possible that the reported case of association of progressive dementia with concomitant development of stiff-man syndrome in an elderly man represents an exaggerated form of such motor disturbances in dementia, and that clinical and electromyographic features of stiff-man syndrome may be present with increased incidence in patients with dementia. | [16006304, 8263140, 9443464, 7714921, 9771977, 8710121, 12803695, 6859058, 2135382, 8381208, 8464926]",
+    "text": "List co-morbidities that may occur together with \"Stiff man Syndrome\" | SMS (Stiff man Syndrome) is is a rare disorder of the central nervous system of probable autoimmune origin and as such is associated with other autoimmune diseases, such as Insulin Dependent Diabetes Mellitus . GAD-65 is a dominant auto-antigen that is found both in in stiff-man syndrome and insulin-dependent diabetes mellitus. TRAB -positive Graves' disease has been reported to occur together with SMS.\nIn a subgroup of patients with the stiff-man syndrome, the condition is likely to have an autoimmune paraneoplastic origin. The detection of autoantibodies against the 128-kd antigen in patients with this syndrome should be considered an indication to search for an occult breast cancer.\n\nHCV may be the etiologic virus of progressive encephalomyelitis with rigidity; a rare disorder similar to stiff-man syndrome although different because it is progressive and fatal.\nIt is possible that the reported case of association of progressive dementia with concomitant development of stiff-man syndrome in an elderly man represents an exaggerated form of such motor disturbances in dementia, and that clinical and electromyographic features of stiff-man syndrome may be present with increased incidence in patients with dementia. | [16006304, 8263140, 9443464, 7714921, 9771977, 8710121, 12803695, 6859058, 2135382, 8381208, 8464926]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1375,
       "id": 1373
     },
-    "char_count": 1408,
+    "char_count": 1407,
     "word_count": 207,
     "line_count": 5
   },
@@ -244043,13 +244043,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1438",
-    "text": "Which anticancer drugs target human topoisomerase II? | Etoposide (VP-16) and Teniposide (VM-26) are effective as an anti-tumour drug by inhibiting eukaryotic DNA topoisomerase II via establishing a covalent complex with DNA. Doxorubicin, Daunorubicin and Aclarubicin are anthracyclins that act as DNA topoisomerase II inhibitors and may be used in combination. Benzoxazoles, benzimidazoles and related fused heterocyclic compounds, which exhibited significant eukaryotic DNA topoisomerase II inhibitory activity. F14512 is a polyamine-containing epipodophyllotoxin derivative that acts as an inhibitor of DNA topoisomerase II. Bisdioxopiperazine drugs such as ICRF-187 are catalytic inhibitors of DNA topoisomerase II. \nAmong topoisomerase II inhibitors, the cytostatic potency was by decreasing order: mitoxantrone; doxorubicin, which was slightly greater than DuP 941, azatoxin; DuP 937; and amsacrine, which was much greater than VP-16 | [21188112, 8297104, 2159380, 22127645, 8996519, 2154411, 1310509, 8040892, 11850431, 22490049, 11724358, 16450374, 1655244, 7947097, 8895198, 10416608, 8567402, 8104687, 19047165]",
+    "text": "Which anticancer drugs target human topoisomerase II? | Etoposide (VP-16) and Teniposide (VM-26) are effective as an anti-tumour drug by inhibiting eukaryotic DNA topoisomerase II via establishing a covalent complex with DNA. Doxorubicin, Daunorubicin and Aclarubicin are anthracyclins that act as DNA topoisomerase II inhibitors and may be used in combination. Benzoxazoles, benzimidazoles and related fused heterocyclic compounds, which exhibited significant eukaryotic DNA topoisomerase II inhibitory activity. F14512 is a polyamine-containing epipodophyllotoxin derivative that acts as an inhibitor of DNA topoisomerase II. Bisdioxopiperazine drugs such as ICRF-187 are catalytic inhibitors of DNA topoisomerase II.\nAmong topoisomerase II inhibitors, the cytostatic potency was by decreasing order: mitoxantrone; doxorubicin, which was slightly greater than DuP 941, azatoxin; DuP 937; and amsacrine, which was much greater than VP-16 | [21188112, 8297104, 2159380, 22127645, 8996519, 2154411, 1310509, 8040892, 11850431, 22490049, 11724358, 16450374, 1655244, 7947097, 8895198, 10416608, 8567402, 8104687, 19047165]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1438,
       "id": 1436
     },
-    "char_count": 1121,
+    "char_count": 1120,
     "word_count": 145,
     "line_count": 2
   },
@@ -245233,13 +245233,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1523",
-    "text": "How can DUF families be deciphered? | The genome projects have unearthed an enormous diversity of genes of unknown function that are still awaiting biological and biochemical characterization. These genes, as most others, can be grouped into families based on sequence similarity. The PFAM database currently contains over 2,200 such families, referred to as domains of unknown function (DUF). \nCritically examining domain covariation across metagenomic datasets can grant new perspectives on the roles and associations of DUFs in an ecological setting. Targeted attempts at DUF characterization in the laboratory or in silico may draw from these insights and opportunities to discover new associations and corroborate existing ones will arise as more large-scale metagenomic datasets emerge. \nIn a coordinated effort, the four large-scale centers of the NIH Protein Structure Initiative have determined the first three-dimensional structures for more than 250 of these DUF families. | [23104832, 23516388, 25044324, 23572527, 19787035, 25010333, 24237627, 24901469, 22629278]",
+    "text": "How can DUF families be deciphered? | The genome projects have unearthed an enormous diversity of genes of unknown function that are still awaiting biological and biochemical characterization. These genes, as most others, can be grouped into families based on sequence similarity. The PFAM database currently contains over 2,200 such families, referred to as domains of unknown function (DUF).\nCritically examining domain covariation across metagenomic datasets can grant new perspectives on the roles and associations of DUFs in an ecological setting. Targeted attempts at DUF characterization in the laboratory or in silico may draw from these insights and opportunities to discover new associations and corroborate existing ones will arise as more large-scale metagenomic datasets emerge.\nIn a coordinated effort, the four large-scale centers of the NIH Protein Structure Initiative have determined the first three-dimensional structures for more than 250 of these DUF families. | [23104832, 23516388, 25044324, 23572527, 19787035, 25010333, 24237627, 24901469, 22629278]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1523,
       "id": 1521
     },
-    "char_count": 1076,
+    "char_count": 1074,
     "word_count": 153,
     "line_count": 3
   },
@@ -245527,13 +245527,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1544",
-    "text": "Is thyroid hormone therapy indicated in patients with heart failure? | There are several experimental and clinical evidences of the potential benefits of Thyroid hormone replacement therapy in heart failure. Initial clinical data showed also a good safety profile and tolerance of TH replacement therapy in patients withheart failure. \nHowever currently there is no indication to treat patients with heart failure withTHreplacementtherapy. | [17710084, 17893267, 22009366, 15604125, 10474790, 9312172, 23369135, 18171701, 23837113, 19506112, 7954115, 18221125, 12145478, 15572044, 9485134, 19125327, 19917524, 19808346, 20100314, 10194658, 8353891, 8333798, 23660007, 12165115, 8936682, 8936683, 19778808, 2189307, 12165118]",
+    "text": "Is thyroid hormone therapy indicated in patients with heart failure? | There are several experimental and clinical evidences of the potential benefits of Thyroid hormone replacement therapy in heart failure. Initial clinical data showed also a good safety profile and tolerance of TH replacement therapy in patients withheart failure.\nHowever currently there is no indication to treat patients with heart failure withTHreplacementtherapy. | [17710084, 17893267, 22009366, 15604125, 10474790, 9312172, 23369135, 18171701, 23837113, 19506112, 7954115, 18221125, 12145478, 15572044, 9485134, 19125327, 19917524, 19808346, 20100314, 10194658, 8353891, 8333798, 23660007, 12165115, 8936682, 8936683, 19778808, 2189307, 12165118]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1544,
       "id": 1542
     },
-    "char_count": 724,
+    "char_count": 723,
     "word_count": 92,
     "line_count": 2
   },
@@ -246703,13 +246703,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1628",
-    "text": "Can adult humans be induced to produce fetal hemoglobin? | Fetal hemoglobin, or foetal haemoglobin, is the main oxygen transport protein in the human fetus during the last seven months of development in the uterus and in the newborn until roughly 6 months old. Functionally, fetal hemoglobin differs most from adult hemoglobin in that it is able to bind oxygen with greater affinity than the adult form, giving the developing fetus better access to oxygen from the mother's bloodstream.\nUnusually high levels of fetal haemoglobin production can ameliorate sickle cell disease and β thalassaemia. Although efforts directed at the pharmacological stimulation of fetal haemoglobin as an approach to managing these conditions have met with limited success, there is wide variation in individual responses. \nBased on results, adults humans could be induced to produce fetal hemoglobin. | [11929793, 18379999, 7541126, 10908330, 14594506, 16939628, 16735596, 17456718, 23997901, 22460946, 17041717, 10575541, 21415990, 11144280, 20305142, 20201948, 24222332, 17486495]",
+    "text": "Can adult humans be induced to produce fetal hemoglobin? | Fetal hemoglobin, or foetal haemoglobin, is the main oxygen transport protein in the human fetus during the last seven months of development in the uterus and in the newborn until roughly 6 months old. Functionally, fetal hemoglobin differs most from adult hemoglobin in that it is able to bind oxygen with greater affinity than the adult form, giving the developing fetus better access to oxygen from the mother's bloodstream.\nUnusually high levels of fetal haemoglobin production can ameliorate sickle cell disease and β thalassaemia. Although efforts directed at the pharmacological stimulation of fetal haemoglobin as an approach to managing these conditions have met with limited success, there is wide variation in individual responses.\nBased on results, adults humans could be induced to produce fetal hemoglobin. | [11929793, 18379999, 7541126, 10908330, 14594506, 16939628, 16735596, 17456718, 23997901, 22460946, 17041717, 10575541, 21415990, 11144280, 20305142, 20201948, 24222332, 17486495]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1628,
       "id": 1626
     },
-    "char_count": 1062,
+    "char_count": 1061,
     "word_count": 154,
     "line_count": 3
   },
@@ -247389,13 +247389,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1677",
-    "text": "List inhibtors targeting the mitochondrial permeability transition pore. | Cyclosporine A\nAtractyloside\nN-metyl-4-isoleucine-cyclosporine\nSanglifehrin A \nTRO-19622 | [20937730, 21542787, 24675465, 12952973, 21669242, 25319443, 24885907, 25351957, 24951958, 25793558, 24349464, 24998301, 15961375, 25502879, 23536162, 23423267, 24273204, 16516918, 25063991, 25767484, 21297983, 22197697, 24801220, 14627909, 22745676, 24657357, 20960209, 18660440, 24297180, 24627421, 24615518, 21372381, 24434143, 10413027, 22198507, 20966765, 24968303, 19819119, 22732280, 21294074, 20668412]",
+    "text": "List inhibtors targeting the mitochondrial permeability transition pore. | Cyclosporine A\nAtractyloside\nN-metyl-4-isoleucine-cyclosporine\nSanglifehrin A\nTRO-19622 | [20937730, 21542787, 24675465, 12952973, 21669242, 25319443, 24885907, 25351957, 24951958, 25793558, 24349464, 24998301, 15961375, 25502879, 23536162, 23423267, 24273204, 16516918, 25063991, 25767484, 21297983, 22197697, 24801220, 14627909, 22745676, 24657357, 20960209, 18660440, 24297180, 24627421, 24615518, 21372381, 24434143, 10413027, 22198507, 20966765, 24968303, 19819119, 22732280, 21294074, 20668412]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1677,
       "id": 1675
     },
-    "char_count": 576,
+    "char_count": 575,
     "word_count": 58,
     "line_count": 5
   },
@@ -247515,13 +247515,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1686",
-    "text": "List some ways to reverse Tau hyperphosphorylation in Tauopathies? | Different ways have been used to try to reverse Tau hyperphosphorylation through administration of inhibitors such as: 7-nitroindazole, memantine, glycogen synthase kinase-3 inhibitors. \nOther approaches are transplantation of Human umbilical cord blood-derived mesenchymal stem cells and administration of M1 muscarinic agonists. | [12212772, 20471717, 18755209, 16687499, 16806196]",
+    "text": "List some ways to reverse Tau hyperphosphorylation in Tauopathies? | Different ways have been used to try to reverse Tau hyperphosphorylation through administration of inhibitors such as: 7-nitroindazole, memantine, glycogen synthase kinase-3 inhibitors.\nOther approaches are transplantation of Human umbilical cord blood-derived mesenchymal stem cells and administration of M1 muscarinic agonists. | [12212772, 20471717, 18755209, 16687499, 16806196]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1686,
       "id": 1684
     },
-    "char_count": 452,
+    "char_count": 451,
     "word_count": 57,
     "line_count": 2
   },
@@ -247851,13 +247851,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1710",
-    "text": "List sclerostin interaction partners. | alkaline phosphatase\ncarbonic anhydrase\ngremlin-1\nfetuin A\nmidkine\nannexin A1 \nannexin A2\ncollagen α1\ncasein kinase II \nsecreted frizzled related protein 4\nPhex\nasporin\nfollistatin\nerbB-3\nLRP5 \nnoggin | [22206666, 17002572, 15199066, 20951118]",
+    "text": "List sclerostin interaction partners. | alkaline phosphatase\ncarbonic anhydrase\ngremlin-1\nfetuin A\nmidkine\nannexin A1\nannexin A2\ncollagen α1\ncasein kinase II\nsecreted frizzled related protein 4\nPhex\nasporin\nfollistatin\nerbB-3\nLRP5\nnoggin | [22206666, 17002572, 15199066, 20951118]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1710,
       "id": 1708
     },
-    "char_count": 283,
+    "char_count": 280,
     "word_count": 38,
     "line_count": 16
   },
@@ -249559,13 +249559,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1832",
-    "text": "Which are the types of viral meningitis? | Aseptic meningitis is the most common type of meningitis and is characterized by meningeal inflammation that is not linked to identifiable bacterial pathogens in cerebrospinal fluid (CSF). It can be originated from infection from:\n1) Varicella-zoster virus (VZV)\n2) Herpes simplex types I and II (HSV-1, HSV-2)\n3) Epstein-Barr virus (EBV) \n4) Cytomegalovirus (CMV) \n5) Enteroviruses (EV) \n6) Parechoviruses (HPeV) \n7) Human rhinoviruses (HRVs) \n8) Echovirus types 6, 9, 11\n9) West Nile Virus (WNV) | [18565120, 8972676, 18354820, 25562123, 9810831, 1418647, 25983131, 25042344, 15927848, 6612271, 14226105, 16849723, 21412795, 22246843, 14503358, 26334674, 16909784, 18680414, 22798048, 25975649, 26568804, 24313836, 21501303, 9265274, 18669052]",
+    "text": "Which are the types of viral meningitis? | Aseptic meningitis is the most common type of meningitis and is characterized by meningeal inflammation that is not linked to identifiable bacterial pathogens in cerebrospinal fluid (CSF). It can be originated from infection from:\n1) Varicella-zoster virus (VZV)\n2) Herpes simplex types I and II (HSV-1, HSV-2)\n3) Epstein-Barr virus (EBV)\n4) Cytomegalovirus (CMV)\n5) Enteroviruses (EV)\n6) Parechoviruses (HPeV)\n7) Human rhinoviruses (HRVs)\n8) Echovirus types 6, 9, 11\n9) West Nile Virus (WNV) | [18565120, 8972676, 18354820, 25562123, 9810831, 1418647, 25983131, 25042344, 15927848, 6612271, 14226105, 16849723, 21412795, 22246843, 14503358, 26334674, 16909784, 18680414, 22798048, 25975649, 26568804, 24313836, 21501303, 9265274, 18669052]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1832,
       "id": 1830
     },
-    "char_count": 788,
+    "char_count": 783,
     "word_count": 109,
     "line_count": 10
   },
@@ -250357,13 +250357,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1889",
-    "text": "List the three most abundant bacterial phyla present in mouse feces. | Firmicutes\nProteobacteria \nBacteroidetes | [20926643, 25537565, 23457582, 19159975]",
+    "text": "List the three most abundant bacterial phyla present in mouse feces. | Firmicutes\nProteobacteria\nBacteroidetes | [20926643, 25537565, 23457582, 19159975]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1889,
       "id": 1887
     },
-    "char_count": 154,
+    "char_count": 153,
     "word_count": 20,
     "line_count": 3
   },
@@ -250413,13 +250413,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1893",
-    "text": "List the classical triad of symptoms of the Melkersson–Rosenthal syndrome. | The Melkersson-Rosenthal syndrome consists of the classical triad of symptoms:\n1) orofacial oedema \n2) fissured tongue (lingua plicata) and\n3) facial paralysis. | [16856704, 7640193, 17103360, 2584463, 24827666, 8302226, 24225172, 11995671, 3228056, 9224474, 15068454, 15865255, 22836908, 12783021, 16096940, 1597367, 16989500, 7856459, 24656464, 26635986, 26698837, 8725591, 10332378, 10938204, 14980194, 10481507, 12081001, 10534638, 1923442, 24874612]",
+    "text": "List the classical triad of symptoms of the Melkersson–Rosenthal syndrome. | The Melkersson-Rosenthal syndrome consists of the classical triad of symptoms:\n1) orofacial oedema\n2) fissured tongue (lingua plicata) and\n3) facial paralysis. | [16856704, 7640193, 17103360, 2584463, 24827666, 8302226, 24225172, 11995671, 3228056, 9224474, 15068454, 15865255, 22836908, 12783021, 16096940, 1597367, 16989500, 7856459, 24656464, 26635986, 26698837, 8725591, 10332378, 10938204, 14980194, 10481507, 12081001, 10534638, 1923442, 24874612]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1893,
       "id": 1891
     },
-    "char_count": 531,
+    "char_count": 530,
     "word_count": 64,
     "line_count": 4
   },
@@ -250735,13 +250735,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1916",
-    "text": "What is \"Epitranscriptome analysis\"? | Modified nucleotides in messenger RNA (mRNA) have been discovered over 40 years ago, but until recently little was known about which transcripts contain them and what their function is. High-throughput sequencing approaches revealed a dynamic landscape of the 'Epitranscriptome' for many mRNA modifications in various organisms from yeast to humans. \nThe detection methods of RNA modifications has enabled investigation of a new layer of gene regulation - the epitranscriptome. | [27172004, 27911721, 26501195, 25370990, 26176336, 27808276, 26733207]",
+    "text": "What is \"Epitranscriptome analysis\"? | Modified nucleotides in messenger RNA (mRNA) have been discovered over 40 years ago, but until recently little was known about which transcripts contain them and what their function is. High-throughput sequencing approaches revealed a dynamic landscape of the 'Epitranscriptome' for many mRNA modifications in various organisms from yeast to humans.\nThe detection methods of RNA modifications has enabled investigation of a new layer of gene regulation - the epitranscriptome. | [27172004, 27911721, 26501195, 25370990, 26176336, 27808276, 26733207]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1916,
       "id": 1914
     },
-    "char_count": 589,
+    "char_count": 588,
     "word_count": 82,
     "line_count": 2
   },
@@ -251071,13 +251071,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1940",
-    "text": "What are the side effects during statins administration in patients with atherosclerosis? | The side effects during statins administration in patients with atherosclerosis are:\n1) Myopathy\n2) Transaminase elevations\n3) Diabetes mellitus \n4) Renal and neurologic adverse effects. | [22913216, 21796961, 26575138, 24788803, 25936326, 27878791, 25644328, 12891851, 19039148, 21972203, 24840269, 23299641, 17042673, 24601937, 18585718, 25678839, 21267417, 26490078]",
+    "text": "What are the side effects during statins administration in patients with atherosclerosis? | The side effects during statins administration in patients with atherosclerosis are:\n1) Myopathy\n2) Transaminase elevations\n3) Diabetes mellitus\n4) Renal and neurologic adverse effects. | [22913216, 21796961, 26575138, 24788803, 25936326, 27878791, 25644328, 12891851, 19039148, 21972203, 24840269, 23299641, 17042673, 24601937, 18585718, 25678839, 21267417, 26490078]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1940,
       "id": 1938
     },
-    "char_count": 461,
+    "char_count": 460,
     "word_count": 57,
     "line_count": 5
   },
@@ -251813,13 +251813,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1993",
-    "text": "Which are the causes of the Koebner phenomenon? | The causes of the Koebner phenomenon are:\n1) Lichen sclerosus\n2) Vitiligo\n3) Psoriasis and \n4) Physical stress. | [23302147, 24011283, 26557075, 16476320, 9169322, 11056428, 18499373, 20042161, 21715249, 23588149, 19489859, 25046469, 8056902, 27106503, 9173061, 15683664, 1702353, 15893715, 19894099, 21396563, 15854039, 26131802, 2102235, 10748764, 11089373, 10348006, 12444521, 12195563, 8507375, 8175343, 17656943, 10884082, 10884083, 12634998]",
+    "text": "Which are the causes of the Koebner phenomenon? | The causes of the Koebner phenomenon are:\n1) Lichen sclerosus\n2) Vitiligo\n3) Psoriasis and\n4) Physical stress. | [23302147, 24011283, 26557075, 16476320, 9169322, 11056428, 18499373, 20042161, 21715249, 23588149, 19489859, 25046469, 8056902, 27106503, 9173061, 15683664, 1702353, 15893715, 19894099, 21396563, 15854039, 26131802, 2102235, 10748764, 11089373, 10348006, 12444521, 12195563, 8507375, 8175343, 17656943, 10884082, 10884083, 12634998]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1993,
       "id": 1991
     },
-    "char_count": 497,
+    "char_count": 496,
     "word_count": 62,
     "line_count": 5
   },
@@ -251897,13 +251897,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_1999",
-    "text": "Which are the typical symptoms of Ménière's disease? | The typical symptoms of Ménière's disease are:\n1) sensorineural hearing loss, \n2) vertigo and \n3) tinnitus. | [18229792, 11583396, 1896679, 2610793, 22705835, 11074796, 11936909, 3968944, 12806289, 18046258, 16640061, 22801040, 3631415, 23418296, 12160282, 15198043, 1896669, 21851581]",
+    "text": "Which are the typical symptoms of Ménière's disease? | The typical symptoms of Ménière's disease are:\n1) sensorineural hearing loss,\n2) vertigo and\n3) tinnitus. | [18229792, 11583396, 1896679, 2610793, 22705835, 11074796, 11936909, 3968944, 12806289, 18046258, 16640061, 22801040, 3631415, 23418296, 12160282, 15198043, 1896669, 21851581]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 1999,
       "id": 1997
     },
-    "char_count": 340,
+    "char_count": 338,
     "word_count": 44,
     "line_count": 4
   },
@@ -251939,13 +251939,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2002",
-    "text": "List metalloenzyme inhibitors. | Foscarnet\nVT-1129\nVT-1161 \nBB-3497\nhydroxamate molecules\nsiderophores | [18666306, 24074025, 11551755, 21046516, 19949750, 21189019, 17314045, 22308350]",
+    "text": "List metalloenzyme inhibitors. | Foscarnet\nVT-1129\nVT-1161\nBB-3497\nhydroxamate molecules\nsiderophores | [18666306, 24074025, 11551755, 21046516, 19949750, 21189019, 17314045, 22308350]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2002,
       "id": 2000
     },
-    "char_count": 185,
+    "char_count": 184,
     "word_count": 20,
     "line_count": 6
   },
@@ -252331,13 +252331,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2030",
-    "text": "Which bacteria cause diphtheria? | Diphtheria is caused by the bacteria:\n1) Corynebacterium ulcerans and \n2) Corynebacterium diphtheriae. | [10932611, 24295558, 22205447, 25297035, 22568715, 14532240, 22583953, 812306, 10220818, 12037265, 25587356, 23163039, 25320226, 24572455, 26607400, 21549738, 23981100, 18583986, 22382258, 22628666, 8784575, 16107839, 23357389, 12661461, 11568853, 25887321, 24106714, 21087580, 25578079, 24293345, 22403045, 16406634, 10598381, 24403054, 21742447, 3112181, 7766139, 1901182]",
+    "text": "Which bacteria cause diphtheria? | Diphtheria is caused by the bacteria:\n1) Corynebacterium ulcerans and\n2) Corynebacterium diphtheriae. | [10932611, 24295558, 22205447, 25297035, 22568715, 14532240, 22583953, 812306, 10220818, 12037265, 25587356, 23163039, 25320226, 24572455, 26607400, 21549738, 23981100, 18583986, 22382258, 22628666, 8784575, 16107839, 23357389, 12661461, 11568853, 25887321, 24106714, 21087580, 25578079, 24293345, 22403045, 16406634, 10598381, 24403054, 21742447, 3112181, 7766139, 1901182]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2030,
       "id": 2028
     },
-    "char_count": 514,
+    "char_count": 513,
     "word_count": 57,
     "line_count": 3
   },
@@ -252569,13 +252569,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2047",
-    "text": "What are congenital disorders of glycosylation? | Congenital disorders of glycosylation (CDG) are a growing group of inherited metabolic disorders where enzymatic defects in the formation or processing of glycolipids and/or glycoproteins lead to variety of different diseases.\nMore than 100 rare human genetic disorders that result from deficiencies in the different glycosylation pathways are known today. \nThe patients have hundreds of misglycosylated products, which afflict a myriad of processes, including cell signaling, cell-cell interaction, and cell migration. | [25840006, 26238249, 24157261, 27725718, 26873821]",
+    "text": "What are congenital disorders of glycosylation? | Congenital disorders of glycosylation (CDG) are a growing group of inherited metabolic disorders where enzymatic defects in the formation or processing of glycolipids and/or glycoproteins lead to variety of different diseases.\nMore than 100 rare human genetic disorders that result from deficiencies in the different glycosylation pathways are known today.\nThe patients have hundreds of misglycosylated products, which afflict a myriad of processes, including cell signaling, cell-cell interaction, and cell migration. | [25840006, 26238249, 24157261, 27725718, 26873821]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2047,
       "id": 2045
     },
-    "char_count": 622,
+    "char_count": 621,
     "word_count": 84,
     "line_count": 3
   },
@@ -252751,13 +252751,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2060",
-    "text": "List genes associated with hypolipidemia. | PCSK9\nAPOB \nANGPTL3\nANGPTL4\nMTP | [22247256, 22062970, 24751931, 26546829]",
+    "text": "List genes associated with hypolipidemia. | PCSK9\nAPOB\nANGPTL3\nANGPTL4\nMTP | [22247256, 22062970, 24751931, 26546829]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2060,
       "id": 2058
     },
-    "char_count": 118,
+    "char_count": 117,
     "word_count": 16,
     "line_count": 5
   },
@@ -252919,13 +252919,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2072",
-    "text": "Which are the symptoms of glucose-6-phosphate dehydrogenase (G6PD) deficiency? | Glucose-6-phosphate dehydrogenase deficiency (G6PD deficiency) is the most common red blood cell (RBC) enzyme disorder. The decrease as well as the absence of the enzyme increase RBC vulnerability to oxidative stress caused by exposure to certain medications or intake of fava beans. Among the most common symptoms of this condition are:\n1) acute hemolysis, \n2) chronic hemolysis, \n3) neonatal hyperbilirubinemia. | [23640458, 20194698, 25116429, 24865682, 25079187, 23188, 23961874, 22829586, 12737943, 25807896, 26840990, 16450734, 11842483, 10980404, 10745013, 19086137, 24891465, 11793482, 22139979, 19769422, 23874768, 10698963, 750548, 24636884, 11271380, 11261779, 24372186, 21336800, 21302115, 9088998, 18450407, 25949934, 11233775, 18094574, 24711919, 26275698, 20065266, 21784438, 20684792]",
+    "text": "Which are the symptoms of glucose-6-phosphate dehydrogenase (G6PD) deficiency? | Glucose-6-phosphate dehydrogenase deficiency (G6PD deficiency) is the most common red blood cell (RBC) enzyme disorder. The decrease as well as the absence of the enzyme increase RBC vulnerability to oxidative stress caused by exposure to certain medications or intake of fava beans. Among the most common symptoms of this condition are:\n1) acute hemolysis,\n2) chronic hemolysis,\n3) neonatal hyperbilirubinemia. | [23640458, 20194698, 25116429, 24865682, 25079187, 23188, 23961874, 22829586, 12737943, 25807896, 26840990, 16450734, 11842483, 10980404, 10745013, 19086137, 24891465, 11793482, 22139979, 19769422, 23874768, 10698963, 750548, 24636884, 11271380, 11261779, 24372186, 21336800, 21302115, 9088998, 18450407, 25949934, 11233775, 18094574, 24711919, 26275698, 20065266, 21784438, 20684792]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2072,
       "id": 2070
     },
-    "char_count": 881,
+    "char_count": 879,
     "word_count": 110,
     "line_count": 4
   },
@@ -253059,13 +253059,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2082",
-    "text": "Which are the clinical symptoms of left ventricular noncompaction? | The clinical symptoms of left ventricular noncompaction are:\n1) heart failure, \n2) systemic thromboembolic events, \n3) ventricular arrhythmias and\n4) sudden cardiac death. | [15458689, 22009732, 27274374, 21987083, 22949776, 23843353, 10824732, 22235038, 24826276, 23914034, 22773171, 19218740, 24132556, 24231893, 11858389, 23258208, 9005281, 17479651, 20347493, 25290726, 23117287, 23196658, 23633270, 20860157]",
+    "text": "Which are the clinical symptoms of left ventricular noncompaction? | The clinical symptoms of left ventricular noncompaction are:\n1) heart failure,\n2) systemic thromboembolic events,\n3) ventricular arrhythmias and\n4) sudden cardiac death. | [15458689, 22009732, 27274374, 21987083, 22949776, 23843353, 10824732, 22235038, 24826276, 23914034, 22773171, 19218740, 24132556, 24231893, 11858389, 23258208, 9005281, 17479651, 20347493, 25290726, 23117287, 23196658, 23633270, 20860157]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2082,
       "id": 2080
     },
-    "char_count": 482,
+    "char_count": 480,
     "word_count": 58,
     "line_count": 5
   },
@@ -253395,13 +253395,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2106",
-    "text": "Which mutated genes are associated with isolated ectopia lentis? | Isolated ectopia lentis (EL) is caused by mutation in genes:\n1) ADAMTSL4 and \n2) Fibrillin-1 (FBN1). | [22871183, 19200529, 24406422, 20082464, 23426735, 19390640, 20141359, 22950452, 18079676, 25975359, 25900864, 21051722, 17679947, 21989719, 25654236, 22539873, 26653794, 20702823, 22736615, 16765689, 22219643]",
+    "text": "Which mutated genes are associated with isolated ectopia lentis? | Isolated ectopia lentis (EL) is caused by mutation in genes:\n1) ADAMTSL4 and\n2) Fibrillin-1 (FBN1). | [22871183, 19200529, 24406422, 20082464, 23426735, 19390640, 20141359, 22950452, 18079676, 25975359, 25900864, 21051722, 17679947, 21989719, 25654236, 22539873, 26653794, 20702823, 22736615, 16765689, 22219643]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2106,
       "id": 2104
     },
-    "char_count": 380,
+    "char_count": 379,
     "word_count": 48,
     "line_count": 3
   },
@@ -254095,13 +254095,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2156",
-    "text": "List the types of the Cardiorenal syndrome (CRS) according to the five-part classification system. | Cardiorenal syndromes (CRS) have been recently classified into five distinct entities, each with different major pathophysiologic mechanisms. \nCRS type 1: acute worsening of heart function (AHF-ACS) leading to kidney injury and/or dysfunction. \nCRS type 2: chronic abnormalities in heart function (CHF-CHD) leading to kidney injury or dysfunction. \nCRS type 3: acute worsening of kidney function (AKI) leading to heart injury and/or dysfunction. \nCRS type 4: chronic kidney disease (CKD) leading to heart injury, disease and/or dysfunction. \nCRS type 5: systemic conditions leading to simultaneous injury and/or dysfunction of heart and kidney. | [19169027, 26411911, 25254030, 20653717, 27165977, 20037146, 22493598, 26483371, 21234092, 20427956, 23689657, 23265597, 21259069, 24402629, 21921607, 21647318, 20427991, 19007588, 24656104, 19554920, 22718456]",
+    "text": "List the types of the Cardiorenal syndrome (CRS) according to the five-part classification system. | Cardiorenal syndromes (CRS) have been recently classified into five distinct entities, each with different major pathophysiologic mechanisms.\nCRS type 1: acute worsening of heart function (AHF-ACS) leading to kidney injury and/or dysfunction.\nCRS type 2: chronic abnormalities in heart function (CHF-CHD) leading to kidney injury or dysfunction.\nCRS type 3: acute worsening of kidney function (AKI) leading to heart injury and/or dysfunction.\nCRS type 4: chronic kidney disease (CKD) leading to heart injury, disease and/or dysfunction.\nCRS type 5: systemic conditions leading to simultaneous injury and/or dysfunction of heart and kidney. | [19169027, 26411911, 25254030, 20653717, 27165977, 20037146, 22493598, 26483371, 21234092, 20427956, 23689657, 23265597, 21259069, 24402629, 21921607, 21647318, 20427991, 19007588, 24656104, 19554920, 22718456]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2156,
       "id": 2154
     },
-    "char_count": 958,
+    "char_count": 953,
     "word_count": 128,
     "line_count": 6
   },
@@ -254193,13 +254193,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2163",
-    "text": "Which are the components of the pre-replication complex (pre-RC) in eukaryotes? | The components of the pre-replication complex (pre-RC) in eukaryotes are:\n1) Cdc6/Cdc18, \n2) MCM, \n3) ORC1-6,\n4) Cdt1 and\n5) Sap1/Gi. | [19910535, 24699916, 22801552, 15201046, 19285403, 22421151, 23720738, 23093411, 20705581, 16257456, 15065651, 22134836, 19531585, 22645314, 25374915, 9159120, 22250202, 22412905, 20097898, 16322558]",
+    "text": "Which are the components of the pre-replication complex (pre-RC) in eukaryotes? | The components of the pre-replication complex (pre-RC) in eukaryotes are:\n1) Cdc6/Cdc18,\n2) MCM,\n3) ORC1-6,\n4) Cdt1 and\n5) Sap1/Gi. | [19910535, 24699916, 22801552, 15201046, 19285403, 22421151, 23720738, 23093411, 20705581, 16257456, 15065651, 22134836, 19531585, 22645314, 25374915, 9159120, 22250202, 22412905, 20097898, 16322558]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2163,
       "id": 2161
     },
-    "char_count": 417,
+    "char_count": 415,
     "word_count": 54,
     "line_count": 6
   },
@@ -254431,13 +254431,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2180",
-    "text": "List the classical symptoms of the Moschcowitz syndrome (Thrombotic thrombocytopenic purpura). | The typical manifestations of Moschocowitz syndrome (Thrombotic-thrombocytopenic purpura) are:\n1) thrombocytopenia, \n2) haemolysis, \n3) fever, \n4) coma and \n5) renal failure. | [6757857, 16388418, 12923683, 2107174, 16240903, 21184040, 7712934, 3752426, 9036362, 25168331, 10714127, 6752882, 10668344, 11450586, 7863389, 21853406, 14727263]",
+    "text": "List the classical symptoms of the Moschcowitz syndrome (Thrombotic thrombocytopenic purpura). | The typical manifestations of Moschocowitz syndrome (Thrombotic-thrombocytopenic purpura) are:\n1) thrombocytopenia,\n2) haemolysis,\n3) fever,\n4) coma and\n5) renal failure. | [6757857, 16388418, 12923683, 2107174, 16240903, 21184040, 7712934, 3752426, 9036362, 25168331, 10714127, 6752882, 10668344, 11450586, 7863389, 21853406, 14727263]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2180,
       "id": 2178
     },
-    "char_count": 437,
+    "char_count": 433,
     "word_count": 51,
     "line_count": 6
   },
@@ -254865,13 +254865,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2211",
-    "text": "Which are the Proprotein Convertase Subtilisin Kexin 9 (PCSK9) inhibitors that are FDA approved? | The PCSK9 inhibitors that are FDA approved are:\n1) Alirocumab and \n2) Evolocumab. | [26822080, 26798848, 26886466, 27186592, 27661220, 27533159, 26548330, 27207595, 26785741, 26652782, 26968977, 26445204, 26596726, 27086681, 26345307, 23889692, 27567901]",
+    "text": "Which are the Proprotein Convertase Subtilisin Kexin 9 (PCSK9) inhibitors that are FDA approved? | The PCSK9 inhibitors that are FDA approved are:\n1) Alirocumab and\n2) Evolocumab. | [26822080, 26798848, 26886466, 27186592, 27661220, 27533159, 26548330, 27207595, 26785741, 26652782, 26968977, 26445204, 26596726, 27086681, 26345307, 23889692, 27567901]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2211,
       "id": 2209
     },
-    "char_count": 353,
+    "char_count": 352,
     "word_count": 46,
     "line_count": 3
   },
@@ -255285,13 +255285,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2241",
-    "text": "Which markers are screened with the triple test for the detection of syndromes in fetus? | The markers that are screened with the triple test for the detection of syndromes in fetus are:\n1) alpha-fetoprotein (AFP), \n2) beta-chorionic gonadotrophin (beta-CG) and \n3) unconjugated oestriol (uE3). | [25330176, 15512289, 9166168, 11084551, 7544745, 18306921, 18839465, 8650125, 21699408, 8630836, 14669430, 8624312, 16378329, 10521756, 10585342, 7485343]",
+    "text": "Which markers are screened with the triple test for the detection of syndromes in fetus? | The markers that are screened with the triple test for the detection of syndromes in fetus are:\n1) alpha-fetoprotein (AFP),\n2) beta-chorionic gonadotrophin (beta-CG) and\n3) unconjugated oestriol (uE3). | [25330176, 15512289, 9166168, 11084551, 7544745, 18306921, 18839465, 8650125, 21699408, 8630836, 14669430, 8624312, 16378329, 10521756, 10585342, 7485343]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2241,
       "id": 2239
     },
-    "char_count": 451,
+    "char_count": 449,
     "word_count": 62,
     "line_count": 4
   },
@@ -257483,13 +257483,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2398",
-    "text": "Can a circRNA be translated into protein? | Circ-ZNF609 is associated with heavy polysomes, and it is translated into a protein in a splicing-dependent and cap-independent manner, providing an example of a protein-coding circRNA in eukaryotes.\nCircular RNAs (circRNAs) represent a large class of noncoding RNAs (ncRNAs) that have recently emerged as regulators of gene expression \nHowever, whether circRNAs encode functional proteins remains elusive, although translation of several circRNAs was recently reported | [27892769, 29028266, 27255916, 26649774, 28344080, 26874353, 28344082, 27617908, 28903484, 27612318]",
+    "text": "Can a circRNA be translated into protein? | Circ-ZNF609 is associated with heavy polysomes, and it is translated into a protein in a splicing-dependent and cap-independent manner, providing an example of a protein-coding circRNA in eukaryotes.\nCircular RNAs (circRNAs) represent a large class of noncoding RNAs (ncRNAs) that have recently emerged as regulators of gene expression\nHowever, whether circRNAs encode functional proteins remains elusive, although translation of several circRNAs was recently reported | [27892769, 29028266, 27255916, 26649774, 28344080, 26874353, 28344082, 27617908, 28903484, 27612318]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2398,
       "id": 2396
     },
-    "char_count": 616,
+    "char_count": 615,
     "word_count": 83,
     "line_count": 3
   },
@@ -262089,13 +262089,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2727",
-    "text": "List proteins with HEAT repeats | mTOR,\nTOG5, \nDNA-PKcs,\nHEATR1,\nRif1,\nB56γ,\nPR65/A,\nSF3b155,\nPds5B | [27072897, 26676747, 27549742, 28512144, 27066066, 27742610, 28415797, 28668119, 24120762, 22315229]",
+    "text": "List proteins with HEAT repeats | mTOR,\nTOG5,\nDNA-PKcs,\nHEATR1,\nRif1,\nB56γ,\nPR65/A,\nSF3b155,\nPds5B | [27072897, 26676747, 27549742, 28512144, 27066066, 27742610, 28415797, 28668119, 24120762, 22315229]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2727,
       "id": 2725
     },
-    "char_count": 202,
+    "char_count": 201,
     "word_count": 26,
     "line_count": 9
   },
@@ -264777,13 +264777,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2919",
-    "text": "List MHC-I-associated inflammatory disorders. | ankylosing spondylitis\nbirdshot chorioretinopathy\nBehçet's disease \npsoriasis | [25892735, 27522479]",
+    "text": "List MHC-I-associated inflammatory disorders. | ankylosing spondylitis\nbirdshot chorioretinopathy\nBehçet's disease\npsoriasis | [25892735, 27522479]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2919,
       "id": 2917
     },
-    "char_count": 148,
+    "char_count": 147,
     "word_count": 15,
     "line_count": 4
   },
@@ -265155,13 +265155,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2946",
-    "text": "List phagosomal markers. | Rab7\nLAMP1\nCathepsin D\nRab9\nV-ATPase \nCD63 | [30201700, 20829607, 29675446, 26928472, 18485117]",
+    "text": "List phagosomal markers. | Rab7\nLAMP1\nCathepsin D\nRab9\nV-ATPase\nCD63 | [30201700, 20829607, 29675446, 26928472, 18485117]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2946,
       "id": 2944
     },
-    "char_count": 122,
+    "char_count": 121,
     "word_count": 17,
     "line_count": 6
   },
@@ -265379,13 +265379,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_2962",
-    "text": "List STING agonists. | CDN 3'3'-cGAMP\ndimethylxanthenone-4-acetic acid \nα-Mangostin | [30079976, 29505322, 29472271, 29170142, 29127039]",
+    "text": "List STING agonists. | CDN 3'3'-cGAMP\ndimethylxanthenone-4-acetic acid\nα-Mangostin | [30079976, 29505322, 29472271, 29170142, 29127039]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 2962,
       "id": 2960
     },
-    "char_count": 136,
+    "char_count": 135,
     "word_count": 15,
     "line_count": 3
   },
@@ -266345,13 +266345,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_3031",
-    "text": "List search engines used in proteomics. | Mascot\nX!Tandem\nMS-GF\nMS Amanda \nMyriMatch\nComet\nTide\nAndromeda\nOMSSA | [29993281, 27498275, 29216772, 28960077]",
+    "text": "List search engines used in proteomics. | Mascot\nX!Tandem\nMS-GF\nMS Amanda\nMyriMatch\nComet\nTide\nAndromeda\nOMSSA | [29993281, 27498275, 29216772, 28960077]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 3031,
       "id": 3029
     },
-    "char_count": 154,
+    "char_count": 153,
     "word_count": 22,
     "line_count": 9
   },
@@ -269131,13 +269131,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_3230",
-    "text": "List proteins with RING domain. | RING1\nTRIM proteins\nTRAF6 \nUHRF1\nMARCH7\nSINA\nBRCA1 | [29295817, 29432170, 29187402, 29471350, 29324855, 29426838, 29107100, 29367421, 29320607]",
+    "text": "List proteins with RING domain. | RING1\nTRIM proteins\nTRAF6\nUHRF1\nMARCH7\nSINA\nBRCA1 | [29295817, 29432170, 29187402, 29471350, 29324855, 29426838, 29107100, 29367421, 29320607]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 3230,
       "id": 3228
     },
-    "char_count": 177,
+    "char_count": 176,
     "word_count": 24,
     "line_count": 7
   },
@@ -269691,13 +269691,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_3270",
-    "text": "What is known about the orphan receptor GPR151? | Gpr151 is an orphan GPCR whose function is unknown. The restricted pattern of neuronal expression in the habenula, dorsal horn of the spinal cord and dorsal root ganglion plus homology with the galanin family of receptors imply a role in nociception. \nOur data demonstrate that GPR151 is highly conserved, specific for a subdivision of the habenular neurocircuitry, and constitutes a promising novel target for psychiatric drug development. | [30373770, 25116430, 29691411, 28657115, 27913310]",
+    "text": "What is known about the orphan receptor GPR151? | Gpr151 is an orphan GPCR whose function is unknown. The restricted pattern of neuronal expression in the habenula, dorsal horn of the spinal cord and dorsal root ganglion plus homology with the galanin family of receptors imply a role in nociception.\nOur data demonstrate that GPR151 is highly conserved, specific for a subdivision of the habenular neurocircuitry, and constitutes a promising novel target for psychiatric drug development. | [30373770, 25116430, 29691411, 28657115, 27913310]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 3270,
       "id": 3268
     },
-    "char_count": 543,
+    "char_count": 542,
     "word_count": 82,
     "line_count": 2
   },
@@ -271329,13 +271329,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_3387",
-    "text": "List radioprotection agents. | Amifostine\nCAPE\nMelanin\nMelatonin\nMetformin\nTea polyphenols \nalpha-2-macroglobulin | [28581409, 30136132, 23796837, 25400428, 29671693, 27389300, 30360725, 29801788, 29141565]",
+    "text": "List radioprotection agents. | Amifostine\nCAPE\nMelanin\nMelatonin\nMetformin\nTea polyphenols\nalpha-2-macroglobulin | [28581409, 30136132, 23796837, 25400428, 29671693, 27389300, 30360725, 29801788, 29141565]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 3387,
       "id": 3385
     },
-    "char_count": 206,
+    "char_count": 205,
     "word_count": 22,
     "line_count": 7
   },
@@ -273933,13 +273933,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_3573",
-    "text": "List five proteins with antioxidant properties? | thioredoxin 1 (Trx1), \nperoxiredoxin 1 (Prx1), \nGSH reductase (GSR),\nphosphatase and tensin homolog (PTEN)\nsuperoxide dismutase (SOD) | [30387809, 29077914, 29577948]",
+    "text": "List five proteins with antioxidant properties? | thioredoxin 1 (Trx1),\nperoxiredoxin 1 (Prx1),\nGSH reductase (GSR),\nphosphatase and tensin homolog (PTEN)\nsuperoxide dismutase (SOD) | [30387809, 29077914, 29577948]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 3573,
       "id": 3571
     },
-    "char_count": 216,
+    "char_count": 214,
     "word_count": 28,
     "line_count": 5
   },
@@ -274857,13 +274857,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_3639",
-    "text": "Which mRNAs are sequestered in stress granules? | Stress granules are higher order assemblies of nontranslating mRNAs and proteins that form when translation initiation is inhibited. \nThis subset of mRNAs is characterized by extended length and adenylate-uridylate (AU)-rich motifs, is highly enriched with genes critical for cell survival and proliferation. mRNA accumulation in stress granules correlates with longer coding and UTR regions and poor translatability | [29483269, 29129640, 21118122, 29576526, 24013423]",
+    "text": "Which mRNAs are sequestered in stress granules? | Stress granules are higher order assemblies of nontranslating mRNAs and proteins that form when translation initiation is inhibited.\nThis subset of mRNAs is characterized by extended length and adenylate-uridylate (AU)-rich motifs, is highly enriched with genes critical for cell survival and proliferation. mRNA accumulation in stress granules correlates with longer coding and UTR regions and poor translatability | [29483269, 29129640, 21118122, 29576526, 24013423]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 3639,
       "id": 3637
     },
-    "char_count": 519,
+    "char_count": 518,
     "word_count": 71,
     "line_count": 2
   },
@@ -277069,13 +277069,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_3797",
-    "text": "List the essential aminoacids. | Leucine\nIsoleucine\nValine \nTryptophan\nCysteine\nMethionine\nLysine\nPhenylalanine | [11347201, 23477202, 28089725, 6620854]",
+    "text": "List the essential aminoacids. | Leucine\nIsoleucine\nValine\nTryptophan\nCysteine\nMethionine\nLysine\nPhenylalanine | [11347201, 23477202, 28089725, 6620854]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 3797,
       "id": 3795
     },
-    "char_count": 153,
+    "char_count": 152,
     "word_count": 18,
     "line_count": 8
   },
@@ -278483,13 +278483,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_3898",
-    "text": "List the core lung matrisome proteins. | LGALS7, \nASPN, \nHSP90AA1, \nHSP90AB1,\nCOL1A1, \nSCGB1A1, \nTAGLN, \nPSEN2, \nTSPAN1, \nCTSB, \nAGR2, \nCSPG2,\nSERPINB3,\nfibronectin,\nemilin-1,\nversican,\ndecorin | [29615673, 30774578]",
+    "text": "List the core lung matrisome proteins. | LGALS7,\nASPN,\nHSP90AA1,\nHSP90AB1,\nCOL1A1,\nSCGB1A1,\nTAGLN,\nPSEN2,\nTSPAN1,\nCTSB,\nAGR2,\nCSPG2,\nSERPINB3,\nfibronectin,\nemilin-1,\nversican,\ndecorin | [29615673, 30774578]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 3898,
       "id": 3896
     },
-    "char_count": 216,
+    "char_count": 206,
     "word_count": 27,
     "line_count": 17
   },
@@ -280219,13 +280219,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_4022",
-    "text": "Which are the main functions of the annexin family? | Annexins are required for membrane organization and membrane transport events required for the establishment/maintenance of epithelial polarity. \nAn association of annexins with ion channels, as membrane-guiding auxiliary proteins or modulators of channel activity. \nLast but not least, some annexins seem to work as extracellular autocrine modulators of receptor function under different physiological conditions. | [21131363, 15590064, 28440436, 16210453, 29408340, 27318360]",
+    "text": "Which are the main functions of the annexin family? | Annexins are required for membrane organization and membrane transport events required for the establishment/maintenance of epithelial polarity.\nAn association of annexins with ion channels, as membrane-guiding auxiliary proteins or modulators of channel activity.\nLast but not least, some annexins seem to work as extracellular autocrine modulators of receptor function under different physiological conditions. | [21131363, 15590064, 28440436, 16210453, 29408340, 27318360]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 4022,
       "id": 4020
     },
-    "char_count": 531,
+    "char_count": 529,
     "word_count": 70,
     "line_count": 3
   },
@@ -285679,13 +285679,13 @@
     "document": "rag.xlsx",
     "source_type": "xlsx",
     "location": "Sheet1!row_4412",
-    "text": "List the main protein families found in human tears? | Lipocalin\nCystatin S (CST4), \ncalcyclin (S100A6),\ncalgranulin A (S100A8) \nmatrix metalloproteinase 9 (MMP9)\nLTF, \nLYZ, \nZAG,\nDNAJC3 | [34012227, 31369467, 31951085, 34489718]",
+    "text": "List the main protein families found in human tears? | Lipocalin\nCystatin S (CST4),\ncalcyclin (S100A6),\ncalgranulin A (S100A8)\nmatrix metalloproteinase 9 (MMP9)\nLTF,\nLYZ,\nZAG,\nDNAJC3 | [34012227, 31369467, 31951085, 34489718]",
     "metadata": {
       "sheet": "Sheet1",
       "row": 4412,
       "id": 4410
     },
-    "char_count": 229,
+    "char_count": 225,
     "word_count": 32,
     "line_count": 9
   },
