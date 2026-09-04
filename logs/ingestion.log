@@ -75,3 +75,54 @@
 2026-09-01 13:53:36,819 | INFO | Saved 5667 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\chunks.json
 2026-09-01 14:04:13,869 | WARNING | qdrant_retrieve: attempt 1 failed (ResponseHandlingException(ReadTimeout('The read operation timed out'))), retrying in 0.50s
 2026-09-01 14:04:15,600 | INFO | qdrant_retrieve: succeeded on attempt 2
+2026-09-02 00:15:18,384 | INFO | Logger initialized.
+2026-09-02 00:15:18,404 | INFO | Files in raw directory: 4
+2026-09-02 00:15:18,406 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-09-02 00:15:18,409 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-09-02 00:15:18,411 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-09-02 00:15:18,414 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-09-02 00:15:20,346 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-09-02 00:15:23,880 | INFO | Foundation-LLMs.pdf: 15740 records
+2026-09-02 00:15:24,664 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-09-02 00:15:25,024 | INFO | rag.xlsx: 4719 records
+2026-09-02 00:15:25,826 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-09-02 00:15:25,827 | INFO | Total records: 20968
+2026-09-02 00:15:26,517 | INFO | Saved 20968 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-09-02 00:15:35,251 | INFO | Loaded embedding model: all-MiniLM-L6-v2
+2026-09-02 00:15:43,780 | INFO | Saved 5667 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\chunks.json
+2026-09-02 00:22:29,872 | WARNING | pg_ensure_schema: attempt 1 failed (OperationalError('connection to server at "localhost" (::1), port 5432 failed: fe_sendauth: no password supplied\n')), retrying in 0.71s
+2026-09-02 00:22:30,639 | WARNING | pg_ensure_schema: attempt 2 failed (OperationalError('connection to server at "localhost" (::1), port 5432 failed: fe_sendauth: no password supplied\n')), retrying in 1.06s
+2026-09-02 00:22:31,754 | ERROR | pg_ensure_schema: failed after 3 attempts -- OperationalError('connection to server at "localhost" (::1), port 5432 failed: fe_sendauth: no password supplied\n')
+2026-09-02 00:29:41,563 | WARNING | pg_ensure_schema: attempt 1 failed (OperationalError('connection to server at "localhost" (::1), port 5432 failed: fe_sendauth: no password supplied\n')), retrying in 0.55s
+2026-09-02 00:29:42,178 | WARNING | pg_ensure_schema: attempt 2 failed (OperationalError('connection to server at "localhost" (::1), port 5432 failed: fe_sendauth: no password supplied\n')), retrying in 1.17s
+2026-09-02 00:29:43,408 | ERROR | pg_ensure_schema: failed after 3 attempts -- OperationalError('connection to server at "localhost" (::1), port 5432 failed: fe_sendauth: no password supplied\n')
+2026-09-02 12:25:00,574 | INFO | Logger initialized.
+2026-09-02 12:25:00,595 | INFO | Files in raw directory: 4
+2026-09-02 12:25:00,598 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-09-02 12:25:00,601 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-09-02 12:25:00,606 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-09-02 12:25:00,608 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-09-02 12:25:02,642 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-09-02 12:25:06,278 | INFO | Foundation-LLMs.pdf: 15740 records
+2026-09-02 12:25:07,078 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-09-02 12:25:07,473 | INFO | rag.xlsx: 4719 records
+2026-09-02 12:25:08,143 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-09-02 12:25:08,145 | INFO | Total records: 20968
+2026-09-02 12:25:08,835 | INFO | Saved 20968 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-09-02 12:25:17,723 | INFO | Loaded embedding model: all-MiniLM-L6-v2
+2026-09-02 12:25:26,027 | INFO | Saved 5667 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\chunks.json
+2026-09-02 17:10:33,214 | INFO | Logger initialized.
+2026-09-02 17:10:33,236 | INFO | Files in raw directory: 4
+2026-09-02 17:10:33,237 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-09-02 17:10:33,239 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-09-02 17:10:33,241 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-09-02 17:10:33,243 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-09-02 17:10:34,621 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-09-02 17:10:37,496 | INFO | Foundation-LLMs.pdf: 15740 records
+2026-09-02 17:10:38,284 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-09-02 17:10:38,626 | INFO | rag.xlsx: 4719 records
+2026-09-02 17:10:39,112 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-09-02 17:10:39,113 | INFO | Total records: 20968
+2026-09-02 17:10:39,650 | INFO | Saved 20968 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-09-02 17:10:48,621 | INFO | Loaded embedding model: all-MiniLM-L6-v2
+2026-09-02 17:10:55,876 | INFO | Saved 5667 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\chunks.json
