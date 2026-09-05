@@ -126,3 +126,33 @@
 2026-09-02 17:10:39,650 | INFO | Saved 20968 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
 2026-09-02 17:10:48,621 | INFO | Loaded embedding model: all-MiniLM-L6-v2
 2026-09-02 17:10:55,876 | INFO | Saved 5667 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\chunks.json
+2026-09-04 18:47:24,696 | INFO | Logger initialized.
+2026-09-04 18:47:24,712 | INFO | Files in raw directory: 4
+2026-09-04 18:47:24,714 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-09-04 18:47:24,716 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-09-04 18:47:24,717 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-09-04 18:47:24,719 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-09-04 18:47:26,028 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-09-04 18:47:28,995 | INFO | Foundation-LLMs.pdf: 15740 records
+2026-09-04 18:47:29,720 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-09-04 18:47:30,095 | INFO | rag.xlsx: 4719 records
+2026-09-04 18:47:30,676 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-09-04 18:47:30,678 | INFO | Total records: 20968
+2026-09-04 18:47:31,285 | INFO | Saved 20968 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\Notebooks\prototype3\data\processed\ingested_records.json
+2026-09-04 18:47:41,090 | INFO | Loaded embedding model: all-MiniLM-L6-v2
+2026-09-04 18:47:48,417 | INFO | Saved 5667 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\Notebooks\prototype3\data\processed\chunks.json
+2026-09-05 00:03:38,692 | INFO | Logger initialized.
+2026-09-05 00:03:38,711 | INFO | Files in raw directory: 4
+2026-09-05 00:03:38,713 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-09-05 00:03:38,717 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-09-05 00:03:38,719 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-09-05 00:03:38,722 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-09-05 00:03:40,290 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-09-05 00:03:43,269 | INFO | Foundation-LLMs.pdf: 15740 records
+2026-09-05 00:03:43,937 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-09-05 00:03:44,226 | INFO | rag.xlsx: 4719 records
+2026-09-05 00:03:44,761 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-09-05 00:03:44,762 | INFO | Total records: 20968
+2026-09-05 00:03:45,397 | INFO | Saved 20968 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\Notebooks\prototype3\data\processed\ingested_records.json
+2026-09-05 00:03:55,895 | INFO | Loaded embedding model: all-MiniLM-L6-v2
+2026-09-05 00:04:06,566 | INFO | Saved 5667 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\Notebooks\prototype3\data\processed\chunks.json
