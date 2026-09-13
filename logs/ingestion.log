@@ -1,0 +1,26 @@
+2026-09-13 12:41:46,691 | INFO | Logger initialized.
+2026-09-13 12:41:46,711 | INFO | Files in raw directory: 0
+2026-09-13 12:41:46,872 | INFO | Total records: 0
+2026-09-13 12:41:46,874 | INFO | Saved 0 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-09-13 12:41:55,171 | INFO | Loaded embedding model: all-MiniLM-L6-v2
+2026-09-13 12:41:55,287 | INFO | Saved 0 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\chunks.json
+2026-09-13 12:52:13,098 | INFO | Logger initialized.
+2026-09-13 12:52:15,573 | INFO | Files in raw directory: 0
+2026-09-13 12:52:24,590 | INFO | Files in raw directory: 0
+2026-09-13 12:52:39,940 | INFO | Total records: 0
+2026-09-13 12:52:39,942 | INFO | Saved 0 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-09-13 12:54:43,938 | INFO | Files in raw directory: 4
+2026-09-13 12:54:43,941 | INFO | - Attention_Is_All_You_Need.docx | .docx | 330.47 KB
+2026-09-13 12:54:43,942 | INFO | - Foundation-LLMs.pdf | .pdf | 2656.22 KB
+2026-09-13 12:54:43,943 | INFO | - rag.xlsx | .xlsx | 898.20 KB
+2026-09-13 12:54:43,944 | INFO | - Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx | .docx | 245.31 KB
+2026-09-13 12:55:06,342 | INFO | Attention_Is_All_You_Need.docx: 298 records
+2026-09-13 12:55:09,105 | INFO | Foundation-LLMs.pdf: 15740 records
+2026-09-13 12:55:09,706 | INFO | rag.xlsx [Sheet1]: semantic=['question', 'answer', 'relevant_passage_ids'] metadata=['id']
+2026-09-13 12:55:10,001 | INFO | rag.xlsx: 4719 records
+2026-09-13 12:55:10,454 | INFO | Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx: 211 records
+2026-09-13 12:55:10,455 | INFO | Total records: 20968
+2026-09-13 12:55:10,974 | INFO | Saved 20968 records to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\ingested_records.json
+2026-09-13 12:55:56,050 | INFO | Loaded embedding model: all-MiniLM-L6-v2
+2026-09-13 12:57:05,116 | INFO | Saved 0 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\chunks.json
+2026-09-13 12:57:24,219 | INFO | Saved 5667 chunks to c:\Users\Swapn\OneDrive\Documents\GitHub\Surfprice\data\processed\chunks.json
