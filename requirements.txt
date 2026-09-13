@@ -1,0 +1,27 @@
+# ---- Index-time (parsing + chunking) --------------------------------------
+pymupdf>=1.24
+python-docx>=1.1
+openpyxl>=3.1
+numpy>=1.26
+pandas>=2.0
+langchain-text-splitters>=0.3
+sentence-transformers>=3.0        # local model, semantic chunk boundaries only
+
+# ---- Query-time (retrieval + generation) ----------------------------------
+qdrant-client>=1.12
+langchain-core>=0.3
+langchain-ollama>=0.2
+requests>=2.31
+
+# ---- Agent ----------------------------------------------------------------
+langchain>=0.3
+langchain-community>=0.3
+langgraph>=0.2
+psycopg2-binary>=2.9
+SQLAlchemy>=2.0
+
+# ---- Dev ------------------------------------------------------------------
+pytest>=8.0
+
+# ---- Coming next ----------------------------------------------------------
+# mlflow>=2.16

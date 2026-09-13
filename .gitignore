@@ -1,0 +1,28 @@
+# Secrets
+.env
+
+# Data — sources and generated artefacts both stay out of git
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Evaluation output
+evaluation/results/*
+!evaluation/results/.gitkeep
+
+# Logs
+logs/
+outputs/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+venv/
+.venv/
+*.egg-info/
+
+# MLflow (once you add it)
+mlruns/

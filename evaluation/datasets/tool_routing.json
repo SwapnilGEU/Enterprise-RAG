@@ -1,0 +1,12 @@
+[
+  {"query": "What is hybrid retrieval?", "expected_tool": "rag_tool", "reference_answer": "It combines dense and sparse retrieval."},
+  {"query": "How does instruction fine-tuning help LLMs?", "expected_tool": "rag_tool", "reference_answer": "It helps models follow user instructions and generalize to new tasks."},
+  {"query": "Show me the last 5 queries from the query history.", "expected_tool": "sql_tool", "reference_answer": "Retrieves the 5 most recent entries from the PostgreSQL query_history table."},
+  {"query": "What is the average latency of the system?", "expected_tool": "sql_tool", "reference_answer": "Calculates the average latency_ms from the query_history table."},
+  {"query": "Calculate 15.5 multiplied by 42.", "expected_tool": "calculator", "reference_answer": "651.0"},
+  {"query": "What is 1250 plus 750 divided by 4?", "expected_tool": "calculator", "reference_answer": "1437.5 (or 500 if interpreted with parentheses)"},
+  {"query": "What is the weather in Delhi right now?", "expected_tool": "get_weather", "reference_answer": "Current temperature and weather conditions for Delhi."},
+  {"query": "Tell me the temperature in London.", "expected_tool": "get_weather", "reference_answer": "Current temperature and weather conditions for London."},
+  {"query": "How many queries have failed so far?", "expected_tool": "sql_tool", "reference_answer": "Counts records in query_history where success is False."},
+  {"query": "Hello, how are you?", "expected_tool": "direct_llm", "reference_answer": "A standard conversational greeting response."}
+]
