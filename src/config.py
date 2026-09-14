@@ -61,7 +61,7 @@ class Config:
         "QDRANT_URL",
         "https://bd42146b-72c4-4a22-a4db-84c41cd50634.us-east-2-0.aws.cloud.qdrant.io",
     ))
-    qdrant_api_key: str = field(default_factory=lambda: os.environ.get("QDRANT_API_KEY", ""))
+    qdrant_api_key: str = field(default_factory=lambda: os.environ.get("QDRANT_API_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6NWM4MWQzYWUtZGFkMC00ODUwLWEzZjEtNWJlNWEyZDcyMDk5In0.2oS50rWHtx5idY_HlsBZANmq9YKgESluJfWgYLQ4bmI"))
     collection_name: str = field(default_factory=lambda: os.environ.get("QDRANT_COLLECTION", "RAG-hybrid-search"))
 
     # Qdrant Cloud computes these server-side (cloud_inference=True), so nothing

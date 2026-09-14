@@ -136,7 +136,8 @@ def build_agent(config: Config = CONFIG):
     def log_to_db_node(state: AgentState):
         """Log the final output and tool usage to Postgres."""
         latency_ms = (time.time() - state["start_time"]) * 1000
-        final_message = state["messages"][-1].content
+        content = state["messages"][-1].content
+        final_message = content if isinstance(content, str) else str(content)
 
         used_tools = set()
         for msg in state["messages"]:

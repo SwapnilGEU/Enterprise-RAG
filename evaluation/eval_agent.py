@@ -46,7 +46,7 @@ def run_case(app, case: dict, preview: int) -> dict:
 
     if state is None:
         print(f"  AGENT CRASHED after {elapsed:.1f}s")
-        show("error:", agent_error)
+        show("error:", agent_error or "Unknown agent error")
         return {
             "query": query, "expected_tool": expected_tool, "actual_tools": "ERROR",
             "tool_correct": False, "reference_answer": case["reference_answer"],

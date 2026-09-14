@@ -1,7 +1,7 @@
 """Root conftest — pytest adds this file's directory to sys.path, which is what
 makes `from src.payload import ...` work in tests without installing anything."""
 
-import pytest
+import pytest  # type: ignore[import-not-found]
 
 
 def pytest_configure(config):
