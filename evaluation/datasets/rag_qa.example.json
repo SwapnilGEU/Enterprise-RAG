@@ -1,0 +1,14 @@
+[
+  {
+    "query": "What is the difference between dense and sparse retrieval?",
+    "reference_answer": "Dense retrieval embeds the query and the chunks into the same vector space and compares them by semantic similarity, so it matches paraphrases. Sparse retrieval (BM25) matches on exact lexical overlap weighted by term frequency and rarity, so it is strong on names, acronyms and IDs that an embedding blurs. Hybrid search runs both and fuses the candidate lists."
+  },
+  {
+    "query": "Why is the ColBERT model used for reranking rather than for ANN retrieval?",
+    "reference_answer": "Late-interaction models score every query token against every document token, which is far too expensive to run across a whole collection. It is applied only to the candidate pool the dense and sparse retrievers have already prefetched, so it reranks a few dozen chunks rather than scanning the index."
+  },
+  {
+    "query": "What does the payload carry back from Qdrant at query time?",
+    "reference_answer": "Whatever build_payload wrote: the chunk identity (document, chunk_id, source_type), the chunk text and its content hash, and the provenance fields section_path, section_heading and page_label that format_source renders into a citation. Anything not written by build_payload does not exist at query time."
+  }
+]
