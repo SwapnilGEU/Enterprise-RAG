@@ -5,7 +5,18 @@
     python mlflow/ragflow.py            # the full golden set
 
 Requires GEMINI_API_KEY (repo-root .env or mlflow/.env), a running Ollama, and
-a populated Qdrant collection.
+a populated Qdrant collection. To judge locally instead, with no API key and no
+quota at all:
+
+    python mlflow/ragflow.py --judge ollama:/qwen3:4b-instruct
+
+Two preflights, cheapest first
+------------------------------
+One judge call, then one traced generation. Both exist because the harness
+swallows failures: `DeepEvalScorer.__call__` turns any exception into
+`Feedback(error=e)`, so an exhausted quota, an unparseable reply and a missing
+retriever span all print the same `'Faithfulness': 1/1 failed`. Finding out
+which one it is *before* the run is worth the two calls.
 
 Retrieval context comes ONLY from the trace
 -------------------------------------------
@@ -73,6 +84,7 @@ except ImportError as exc:  # deepeval missing, or mlflow too old
 # sys.path[0], so the bare name resolves to the file next door.
 sys.path.insert(0, str(HERE))
 from judge_json import install as install_judge_patches  # noqa: E402
+import judge_quota  # noqa: E402
 
 from src.generation import generate_answer  # noqa: E402
 
@@ -157,6 +169,20 @@ def build_scorers(judge: str, contextual_relevancy: bool = False) -> list:
 # --- preflight -------------------------------------------------------------
 
 
+def check_judge(judge: str) -> bool:
+    """One judge call, before anything expensive happens.
+
+    This runs first and for one reason: the cheapest failure is the one you
+    find before generating anything. A dead judge quota used to surface only
+    after a full generation pass, disguised as four scorers "failing" — see
+    mlflow/judge_quota.py for why that disguise is so convincing.
+    """
+    print(f"[preflight] asking the judge one question ({judge}) ...")
+    ok, message = judge_quota.probe(judge)
+    print(f"[preflight] {'OK — ' if ok else 'FAIL — '}{message}")
+    return ok
+
+
 def check_retriever_span(question: str) -> bool:
     """Run one real question and confirm the trace carries a retriever span
     whose chunks parse. Catches the failure mode where three of four scorers
@@ -204,11 +230,20 @@ def main() -> int:
     parser.add_argument(
         "--smoke",
         action="store_true",
-        help="preflight + one row only — catches judge JSON-parse failures cheaply",
+        help="preflights + one row only — catches quota and JSON-parse failures cheaply",
     )
     parser.add_argument("--judge", default=JUDGE, help=f"judge model URI (default {JUDGE})")
     parser.add_argument("--contextual-relevancy", action="store_true", help="add the 5th scorer")
-    parser.add_argument("--skip-preflight", action="store_true")
+    parser.add_argument(
+        "--skip-preflight",
+        action="store_true",
+        help="skip the retriever-span check (does not skip the judge check)",
+    )
+    parser.add_argument(
+        "--skip-judge-preflight",
+        action="store_true",
+        help="do not spend one judge call checking the judge is reachable first",
+    )
     parser.add_argument(
         "--stock-judge",
         action="store_true",
@@ -222,6 +257,10 @@ def main() -> int:
         os.environ["JUDGE_JSON_REPAIR"] = "0"
     patches = install_judge_patches()
     print(f"judge JSON patches: {patches}")
+    # Installed *after* the JSON patches so the retry wraps the whole
+    # native-then-fallback attempt rather than half of it.
+    judge_quota.reset()
+    print(f"judge quota guard: {judge_quota.install()}")
 
     mlflow.set_tracking_uri(TRACKING_URI)
     try:
@@ -237,6 +276,13 @@ def main() -> int:
     limit = 1 if args.smoke else args.limit
     dataset = load_dataset(args.data, limit=limit)
     print(f"dataset: {args.data.name} — {len(dataset)} row(s)")
+
+    # Cheapest check first: one judge call costs a second, a generation pass
+    # costs minutes.
+    if not args.skip_judge_preflight:
+        if not check_judge(args.judge):
+            print("\nAborting before generation: the judge cannot answer.")
+            return 2
 
     if not args.skip_preflight:
         ok = check_retriever_span(dataset[0]["inputs"]["question"])
@@ -254,10 +300,35 @@ def main() -> int:
     for name, value in sorted(results.metrics.items()):
         print(f"  {name}: {value}")
 
-    # A judge that returns unparseable JSON marks the row errored rather than
-    # raising, so a run can come back quietly half-empty. Say so out loud.
-    if any("error" in name.lower() for name in results.metrics):
-        print("\nNOTE: some rows errored — usually the judge returned unparseable JSON.")
+    # How much judge did this cost? Nobody guesses this number correctly the
+    # first time, and on a metered key it is the number that matters.
+    counts = judge_quota.stats()
+    print(
+        f"\njudge calls: {counts['calls']}"
+        f"   retries: {counts['retries']}   failures: {counts['failures']}"
+    )
+
+    # A row can error for two very different reasons and they used to print the
+    # same sentence. Name the real one.
+    errored = any("error" in name.lower() for name in results.metrics)
+    if counts["quota_exhausted"]:
+        print(
+            "\n"
+            + "=" * 70
+            + f"\nRUN INVALID — judge quota ran out mid-run: {counts['quota_exhausted']}\n"
+            + "Scores above are not trustworthy: every call after the limit was hit\n"
+            "failed without reaching the judge.\n\n"
+            + judge_quota.quota_advice(args.judge, judge_quota.tripped())
+            + "\n"
+            + "=" * 70
+        )
+        return 3
+    if errored:
+        print(
+            "\nNOTE: some rows errored. The quota was fine, so the likely cause is the\n"
+            "judge returning unparseable JSON. Get the real message with:\n"
+            "    python mlflow/diagnose.py --full"
+        )
 
     print(f"\nOpen {TRACKING_URI} to see per-row scores and traces.")
     return 0
