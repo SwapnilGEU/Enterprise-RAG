@@ -1,6 +1,6 @@
 # Secrets
 .env
-
+mlflow/.env
 # Data — sources and generated artefacts both stay out of git
 data/raw/*
 data/processed/*
@@ -26,3 +26,12 @@ venv/
 
 # MLflow (once you add it)
 mlruns/
+.env
+__pycache__/
+*.pyc
+logs/
+outputs/
+data/
+mlflow/mlflow.db
+mlflow/mlartifacts/
+

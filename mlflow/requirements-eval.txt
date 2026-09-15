@@ -1,0 +1,8 @@
+# Evaluation-only dependencies. The pipeline itself (qdrant-client, langchain-*,
+# pymupdf, ...) is not listed here.
+#
+#   pip install -r mlflow/requirements-eval.txt
+
+mlflow>=3.16.0          # mlflow.genai.scorers.deepeval; RETRIEVER-span contract
+deepeval>=3.0.0         # the metrics MLflow wraps
+python-dotenv>=1.0.0    # GEMINI_API_KEY out of .env

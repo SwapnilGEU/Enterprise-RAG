@@ -1,328 +1,263 @@
+"""RAG evaluation: DeepEval scorers on MLflow, judged by Gemini.
+
+    mlflow server                       # in one terminal, from the repo root
+    python mlflow/ragflow.py --smoke    # one row, per scorer — always do this first
+    python mlflow/ragflow.py            # the full golden set
+
+Requires GEMINI_API_KEY (repo-root .env or mlflow/.env), a running Ollama, and
+a populated Qdrant collection.
+
+Retrieval context comes ONLY from the trace
+-------------------------------------------
+Faithfulness, ContextualPrecision and ContextualRecall read
+`LLMTestCase.retrieval_context`, which MLflow builds exclusively from top-level
+RETRIEVER spans on the trace. There is no way to hand them context through
+`inputs` or `expectations`. `src/retrieval.py::retrieve` carries that span —
+see the note at the bottom of this file. Without it those three scorers do not
+error, they quietly score an empty context and the numbers are meaningless.
+This script refuses to run the full set if the smoke trace has no retriever
+span, rather than let that happen silently.
 """
-DeepEval RAG scorers on MLflow, judged by a local Ollama model.
-
-    Faithfulness         generation  is the answer grounded in retrieved context?
-    AnswerRelevancy      generation  does the answer address the question?
-    ContextualPrecision  retrieval   are relevant chunks ranked above irrelevant ones?
-    ContextualRecall     retrieval   does the context contain everything the answer needs?
-
-Usage:
-    python mlflow/ragflow.py smoke
-    python mlflow/ragflow.py generate
-    python mlflow/ragflow.py judge --run-id <id>
-    python mlflow/ragflow.py all
-"""
-
-from __future__ import annotations
 
 import argparse
 import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Callable, Iterable, Sequence
 
-import mlflow
-import mlflow.genai as mlflow_genai
-from mlflow.entities import SpanType
-from mlflow.genai.scorers.deepeval import (
-    AnswerRelevancy,
-    ContextualPrecision,
-    ContextualRecall,
-    ContextualRelevancy,
-    Faithfulness,
-)
-
-# --------------------------------------------------------------------------
-# Config
-# --------------------------------------------------------------------------
+from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
-EXPERIMENT = os.getenv("MLFLOW_EXPERIMENT", "enterprise-rag-eval")
+# .env may sit at the repo root or next to this script — load both, first wins.
+for env_path in (PROJECT_ROOT / ".env", HERE / ".env"):
+    if env_path.exists():
+        load_dotenv(env_path)
 
-# Ollama is a *native* MLflow provider — no API key, no litellm.
-# Base URL is fixed at http://localhost:11434/v1, no env override.
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "ollama:/qwen3:4b-instruct")
+if not os.environ.get("GEMINI_API_KEY"):
+    raise SystemExit(
+        "GEMINI_API_KEY not found.\n"
+        f"Put it in {PROJECT_ROOT / '.env'} (or {HERE / '.env'}) as:\n"
+        '    GEMINI_API_KEY="..."'
+    )
 
-# temperature=0 is not optional — the judge's JSON is prompt-injected, not
-# schema-enforced, so any sampling raises the chance of an unparseable reply.
-JUDGE_KWARGS: dict[str, Any] = {"temperature": 0.0}
+# Ollama keeps one model resident on a 6GB card; parallel predict_fn workers
+# make it thrash. Must be set BEFORE mlflow is imported — the harness reads it
+# at import time. Serial is also what makes the logs readable.
+os.environ.setdefault("MLFLOW_GENAI_EVAL_MAX_WORKERS", "1")
+os.environ.setdefault("OLLAMA_MAX_LOADED_MODELS", "1")
 
-THRESHOLD = 0.5
+import mlflow  # noqa: E402
+import mlflow.genai  # noqa: E402
+from mlflow.entities import SpanType  # noqa: E402
 
-DATASET_PATH = PROJECT_ROOT / "evaluation" / "datasets" / "rag_qa.json"
+try:
+    from mlflow.genai.scorers.deepeval import (  # noqa: E402
+        AnswerRelevancy,
+        ContextualPrecision,
+        ContextualRecall,
+        ContextualRelevancy,
+        Faithfulness,
+    )
+except ImportError as exc:  # deepeval missing, or mlflow too old
+    raise SystemExit(
+        f"Could not import MLflow's DeepEval scorers ({exc}).\n"
+        "    pip install -r mlflow/requirements-eval.txt"
+    ) from exc
 
-# ContextualRelevancy is the weakest of the five and doubles judge time.
-INCLUDE_CONTEXTUAL_RELEVANCY = False
+from src.generation import generate_answer  # noqa: E402
+
+# Every scorer needs an explicit model=. MLflow's default judge is OpenAI
+# gpt-4o-mini, so a scorer built without it reaches for OPENAI_API_KEY and dies.
+JUDGE = os.environ.get("GEMINI_JUDGE", "gemini:/gemini-2.5-flash")
+TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
+EXPERIMENT = os.environ.get("MLFLOW_EXPERIMENT", "enterprise-rag-eval")
+DEFAULT_DATA = PROJECT_ROOT / "evaluation" / "datasets" / "rag_qa.json"
 
 
-# --------------------------------------------------------------------------
-# Scorers
-# --------------------------------------------------------------------------
+# --- the app ---------------------------------------------------------------
 
 
-def build_scorers() -> list[Any]:
-    """The four core RAG scorers, all pointed at the local judge.
+@mlflow.trace(span_type=SpanType.CHAIN, name="rag")
+def rag(question: str) -> str:
+    """The thing under evaluation. Returns a plain string: MLflow stringifies
+    the output for the judge anyway, and returning the whole result dict puts
+    the full context blob in `actual_output`, which AnswerRelevancy then marks
+    down for irrelevance."""
+    result = generate_answer(question)
+    if isinstance(result, dict):
+        for key in ("answer", "text", "output"):
+            value = result.get(key)
+            if isinstance(value, str):
+                return value
+    return str(result)
 
-    Every scorer needs an explicit `model=`. Omit it and MLflow falls back to
-    its default judge (OpenAI gpt-4o-mini) and will look for OPENAI_API_KEY.
+
+# --- the data --------------------------------------------------------------
+
+
+def load_dataset(path: Path, limit: int | None = None) -> list[dict]:
+    """rag_qa.json is a list of {query, reference_answer}; reshape to the
+    inputs/expectations pairs mlflow.genai.evaluate wants.
+
+    `expected_output` is not a free choice of key — ContextualPrecision and
+    ContextualRecall look for exactly that name.
     """
-    common = {"model": JUDGE_MODEL, "threshold": THRESHOLD, "model_kwargs": JUDGE_KWARGS}
+    if not path.exists():
+        raise SystemExit(
+            f"Golden dataset not found: {path}\n"
+            "Create it as a JSON list of {\"query\": ..., \"reference_answer\": ...}\n"
+            f"There is a template at {PROJECT_ROOT / 'evaluation/datasets/rag_qa.example.json'}\n"
+            "or point at another file with --data."
+        )
+
+    rows = json.loads(path.read_text("utf-8"))
+    if not isinstance(rows, list) or not rows:
+        raise SystemExit(f"{path} must be a non-empty JSON list.")
+
+    dataset = []
+    for i, row in enumerate(rows):
+        try:
+            dataset.append(
+                {
+                    "inputs": {"question": row["query"]},
+                    "expectations": {"expected_output": row["reference_answer"]},
+                }
+            )
+        except KeyError as exc:
+            raise SystemExit(
+                f"{path} row {i} is missing {exc}; each row needs "
+                '"query" and "reference_answer".'
+            ) from exc
+
+    return dataset[:limit] if limit else dataset
+
+
+def build_scorers(judge: str, contextual_relevancy: bool = False) -> list:
     scorers = [
-        Faithfulness(**common),
-        AnswerRelevancy(**common),
-        ContextualPrecision(**common),
-        ContextualRecall(**common),
+        Faithfulness(model=judge),          # generation — needs the retriever span
+        AnswerRelevancy(model=judge),       # generation — input + output only
+        ContextualPrecision(model=judge),   # retrieval  — span + expected_output
+        ContextualRecall(model=judge),      # retrieval  — span + expected_output
     ]
-    if INCLUDE_CONTEXTUAL_RELEVANCY:
-        scorers.append(ContextualRelevancy(**common))
+    if contextual_relevancy:
+        scorers.append(ContextualRelevancy(model=judge))  # weakest, doubles judge time
     return scorers
 
 
-# --------------------------------------------------------------------------
-# Tracing — this is what feeds retrieval_context to the scorers
-# --------------------------------------------------------------------------
-#
-# Three of the four scorers read `retrieval_context`, and MLflow builds that
-# ONLY from spans of type RETRIEVER. There is no way to hand it in as a plain
-# dict. The retriever span's output must be a list of dicts carrying the chunk
-# text under one of: "page_content", "content", "text". Anything else and
-# retrieval_context comes back empty and those three scorers silently score
-# against nothing.
+# --- preflight -------------------------------------------------------------
 
 
-def as_retriever_docs(chunks: Iterable[Any]) -> list[dict[str, Any]]:
-    """Normalise retriever output into the shape MLflow recognises."""
-    docs = []
-    for c in chunks:
-        if isinstance(c, dict):
-            text = c.get("page_content") or c.get("content") or c.get("text") or ""
-            meta = c.get("metadata") or {}
-        else:  # LangChain Document, or anything with .page_content
-            text = getattr(c, "page_content", None) or getattr(c, "text", "") or str(c)
-            meta = getattr(c, "metadata", {}) or {}
-        docs.append({"page_content": text, "metadata": meta})
-    return docs
+def check_retriever_span(question: str) -> bool:
+    """Run one real question and confirm the trace carries a retriever span
+    whose chunks parse. Catches the failure mode where three of four scorers
+    score an empty context and report a plausible-looking number."""
+    print(f"[preflight] tracing one question: {question!r}")
+    with mlflow.start_span(name="preflight") as span:
+        answer = rag(question)
+        trace_id = span.trace_id
 
-
-def traced_rag(
-    retrieve_fn: Callable[[str], Sequence[Any]],
-    generate_fn: Callable[[str, Sequence[Any]], str],
-) -> Callable[[str], str]:
-    """Wrap an existing retrieve/generate pair so MLflow records proper spans.
-
-    When you are ready to make it permanent, move the decorators onto the real
-    functions in src/ — same span boundaries, and the OTel work later reuses them.
-    """
-
-    @mlflow.trace(span_type=SpanType.RETRIEVER, name="retrieve")
-    def _retrieve(question: str) -> list[dict[str, Any]]:
-        return as_retriever_docs(retrieve_fn(question))
-
-    @mlflow.trace(span_type=SpanType.LLM, name="generate")
-    def _generate(question: str, docs: list[dict[str, Any]]) -> str:
-        return generate_fn(question, docs)
-
-    @mlflow.trace(span_type=SpanType.CHAIN, name="rag")
-    def _rag(question: str) -> str:
-        docs = _retrieve(question)
-        return _generate(question, docs)
-
-    return _rag
-
-
-# --------------------------------------------------------------------------
-# Dataset
-# --------------------------------------------------------------------------
-
-
-def load_dataset(path: Path = DATASET_PATH) -> list[dict[str, str]]:
-    """Reshape {query, reference_answer} into what the scorers expect.
-
-    ContextualPrecision and ContextualRecall both need a ground-truth answer,
-    and they look for it under the key `expected_output` specifically.
-    """
-    rows = json.loads(Path(path).read_text(encoding="utf-8"))
-    return [
-        {
-            "question": r.get("query") or r["question"],
-            "expected_output": r.get("reference_answer") or r["expected_output"],
-        }
-        for r in rows
-    ]
-
-
-# --------------------------------------------------------------------------
-# Phase 1 — generate answers, log traces
-# --------------------------------------------------------------------------
-
-
-def generate_traces(
-    answer_fn: Callable[[str], str],
-    dataset: list[dict[str, str]],
-    run_name: str = "generate",
-) -> str:
-    """Run the pipeline over every question. Only the generator is resident here."""
-    mlflow.set_tracking_uri(TRACKING_URI)
-    mlflow.set_experiment(EXPERIMENT)
-
-    with mlflow.start_run(run_name=run_name) as run:
-        for i, row in enumerate(dataset, 1):
-            print(f"  [{i}/{len(dataset)}] {row['question'][:70]}")
-            answer_fn(row["question"])
-
-            # Attach ground truth to the trace so the scorers can find it later.
-            trace_id = mlflow.get_last_active_trace_id()
-            if trace_id:
-                mlflow.log_expectation(
-                    trace_id=trace_id,
-                    name="expected_output",
-                    value=row["expected_output"],
-                )
-        print(f"\n  run_id: {run.info.run_id}")
-        return run.info.run_id
-
-
-# --------------------------------------------------------------------------
-# Phase 2 — judge the stored traces
-# --------------------------------------------------------------------------
-
-
-def judge_traces(run_id: str):
-    """Score already-generated traces. Only the judge is resident here.
-
-    Documented mode 1 of mlflow.genai.evaluate: a DataFrame with a `trace`
-    column from mlflow.search_traces. The scorers pull inputs, outputs,
-    retrieval_context and expectations straight off each trace.
-    """
-    mlflow.set_tracking_uri(TRACKING_URI)
-    mlflow.set_experiment(EXPERIMENT)
-
-    trace_df = mlflow.search_traces(run_id=run_id)
-    if len(trace_df) == 0:
-        raise SystemExit(f"No traces found for run_id={run_id}")
-    print(f"  judging {len(trace_df)} traces with {JUDGE_MODEL}")
-
-    results = mlflow_genai.evaluate(data=trace_df, scorers=build_scorers())
-    print("\n  metrics:")
-    for k, v in results.metrics.items():
-        print(f"    {k}: {v}")
-    return results
-
-
-# --------------------------------------------------------------------------
-# Smoke test — run this before the full set
-# --------------------------------------------------------------------------
-
-
-def smoke(answer_fn: Callable[[str], str], dataset: list[dict[str, str]]) -> bool:
-    """One question through the whole path, with each scorer called directly.
-
-    A small judge sometimes returns JSON the scorer cannot parse. MLflow catches
-    that and marks the row errored rather than crashing, so a full run can come
-    back quietly half-empty. Better to find out on one row than on forty.
-    """
-    mlflow.set_tracking_uri(TRACKING_URI)
-    mlflow.set_experiment(EXPERIMENT)
-
-    row = dataset[0]
-    print(f"  question: {row['question']}")
-    with mlflow.start_run(run_name="smoke"):
-        answer_fn(row["question"])
-        trace_id = mlflow.get_last_active_trace_id()
-        if trace_id is None:
-            raise RuntimeError("No active trace was created for the smoke test")
-        mlflow.log_expectation(
-            trace_id=trace_id, name="expected_output", value=row["expected_output"]
-        )
-
+    mlflow.flush_trace_async_logging()
     trace = mlflow.get_trace(trace_id)
     if trace is None:
-        raise RuntimeError("Unable to retrieve the smoke-test trace")
-
-    if not [s for s in trace.data.spans if s.span_type == SpanType.RETRIEVER]:
-        print("  !! no RETRIEVER span — the three context scorers will score nothing")
+        print("[preflight] WARNING: could not read the trace back from the server.")
         return False
 
-    ok = True
-    for scorer in build_scorers():
-        fb = scorer(trace=trace)
-        if fb.error:
-            ok = False
-            print(f"  {scorer.name:20} ERROR  {fb.error}")
-        else:
-            print(f"  {scorer.name:20} {fb.value}  score={fb.metadata['score']}")
-    return ok
+    from mlflow.genai.utils.trace_utils import extract_retrieval_context_from_trace
+
+    context = extract_retrieval_context_from_trace(trace)
+    chunks = [c for chunk_list in context.values() for c in chunk_list]
+
+    print(f"[preflight] answer: {answer[:120]!r}...")
+    print(f"[preflight] retriever spans: {len(context)}  parsed chunks: {len(chunks)}")
+
+    if not chunks:
+        print(
+            "[preflight] FAIL — no retrieval context on the trace.\n"
+            "  Faithfulness / ContextualPrecision / ContextualRecall would score\n"
+            "  an empty context. Check that src/retrieval.py::retrieve is still\n"
+            "  decorated with @mlflow.trace(span_type=SpanType.RETRIEVER) and\n"
+            "  returns a list of dicts with the text under 'page_content'."
+        )
+        return False
+
+    print("[preflight] OK — retrieval context is on the trace.")
+    return True
 
 
-# --------------------------------------------------------------------------
-# Wire in your pipeline here  <-- THE ONLY PART YOU MUST EDIT
-# --------------------------------------------------------------------------
+# --- run it ----------------------------------------------------------------
 
 
-def get_answer_fn() -> Callable[[str], str]:
-    """Point this at your pipeline.
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data", type=Path, default=DEFAULT_DATA, help="golden set JSON")
+    parser.add_argument("--limit", type=int, default=None, help="evaluate only the first N rows")
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="preflight + one row only — catches judge JSON-parse failures cheaply",
+    )
+    parser.add_argument("--judge", default=JUDGE, help=f"judge model URI (default {JUDGE})")
+    parser.add_argument("--contextual-relevancy", action="store_true", help="add the 5th scorer")
+    parser.add_argument("--skip-preflight", action="store_true")
+    args = parser.parse_args()
 
-    Two shapes are needed:
-        retrieve_fn(question) -> sequence of chunks   (any object type)
-        generate_answer_fn(question, docs) -> str
+    mlflow.set_tracking_uri(TRACKING_URI)
+    try:
+        mlflow.set_experiment(EXPERIMENT)
+    except Exception as exc:
+        raise SystemExit(
+            f"Could not reach the MLflow tracking server at {TRACKING_URI} ({exc}).\n"
+            "Start it first:  mlflow server"
+        ) from exc
 
-    If src/ already has a single end-to-end answer(question) -> str, return it
-    directly instead — but then add @mlflow.trace(span_type=SpanType.RETRIEVER)
-    to your retrieve() in src/, or the three context scorers get nothing.
-    """
-    sys.path.insert(0, str(PROJECT_ROOT))
-    from src.retrieval import retrieve  # noqa: PLC0415
-    from src.generation import generate_answer  # noqa: PLC0415
+    print(f"tracking: {TRACKING_URI}   experiment: {EXPERIMENT}   judge: {args.judge}")
 
-    def _generate_answer(question: str, _docs: Sequence[Any]) -> str:
-        result = generate_answer(question)
-        if isinstance(result, dict):
-            answer = result.get("answer") or result.get("response") or result.get("output")
-            return str(answer if answer is not None else result)
-        return str(result)
+    limit = 1 if args.smoke else args.limit
+    dataset = load_dataset(args.data, limit=limit)
+    print(f"dataset: {args.data.name} — {len(dataset)} row(s)")
 
-    return traced_rag(retrieve, _generate_answer)
+    if not args.skip_preflight:
+        ok = check_retriever_span(dataset[0]["inputs"]["question"])
+        if not ok and not args.smoke:
+            print("Aborting: fix the retriever span, or re-run with --skip-preflight.")
+            return 1
 
+    results = mlflow.genai.evaluate(
+        data=dataset,
+        predict_fn=rag,
+        scorers=build_scorers(args.judge, args.contextual_relevancy),
+    )
 
-# --------------------------------------------------------------------------
-# CLI
-# --------------------------------------------------------------------------
+    print("\nmetrics:")
+    for name, value in sorted(results.metrics.items()):
+        print(f"  {name}: {value}")
 
+    # A judge that returns unparseable JSON marks the row errored rather than
+    # raising, so a run can come back quietly half-empty. Say so out loud.
+    if any("error" in name.lower() for name in results.metrics):
+        print("\nNOTE: some rows errored — usually the judge returned unparseable JSON.")
 
-def main() -> None:
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("command", choices=["smoke", "generate", "judge", "all"])
-    p.add_argument("--run-id", help="run_id to judge (required for `judge`)")
-    args = p.parse_args()
-
-    # One model resident at a time, or Ollama keeps both loaded and spills to CPU.
-    os.environ.setdefault("OLLAMA_MAX_LOADED_MODELS", "1")
-
-    dataset = load_dataset()
-
-    if args.command == "smoke":
-        print("\n== smoke ==")
-        sys.exit(0 if smoke(get_answer_fn(), dataset) else 1)
-
-    elif args.command == "generate":
-        print("\n== phase 1: generate ==")
-        generate_traces(get_answer_fn(), dataset)
-
-    elif args.command == "judge":
-        if not args.run_id:
-            p.error("--run-id is required for `judge`")
-        print("\n== phase 2: judge ==")
-        judge_traces(args.run_id)
-
-    elif args.command == "all":
-        print("\n== phase 1: generate ==")
-        run_id = generate_traces(get_answer_fn(), dataset)
-        print("\n== phase 2: judge ==")
-        judge_traces(run_id)
+    print(f"\nOpen {TRACKING_URI} to see per-row scores and traces.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
+
+
+# ---------------------------------------------------------------------------
+# The retriever span (already applied in src/retrieval.py):
+#
+#     @mlflow.trace(span_type=SpanType.RETRIEVER, name="retrieve")
+#     def retrieve(query, top_k=None, config=CONFIG) -> list[dict]:
+#         points = retrieve_points(query, top_k=top_k, config=config)
+#         return [{"page_content": p.payload["text"], "metadata": {...}} for p in points]
+#
+# The span output MUST be a list of dicts with the text under "page_content"
+# (or "content" / "text"); optional "metadata", of which only metadata.doc_uri
+# is read. Anything else is dropped with a debug-level log. Only *top-level*
+# retriever spans count — one nested inside another retriever span is ignored.
+# ---------------------------------------------------------------------------
