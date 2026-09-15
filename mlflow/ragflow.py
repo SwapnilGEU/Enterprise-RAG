@@ -67,6 +67,13 @@ except ImportError as exc:  # deepeval missing, or mlflow too old
         "    pip install -r mlflow/requirements-eval.txt"
     ) from exc
 
+# Plain `import judge_json`, not `from mlflow.judge_json import ...`: the
+# installed mlflow package wins that name over this folder (a regular package
+# beats a namespace package in the import scan). This script's own directory is
+# sys.path[0], so the bare name resolves to the file next door.
+sys.path.insert(0, str(HERE))
+from judge_json import install as install_judge_patches  # noqa: E402
+
 from src.generation import generate_answer  # noqa: E402
 
 # Every scorer needs an explicit model=. MLflow's default judge is OpenAI
@@ -202,7 +209,19 @@ def main() -> int:
     parser.add_argument("--judge", default=JUDGE, help=f"judge model URI (default {JUDGE})")
     parser.add_argument("--contextual-relevancy", action="store_true", help="add the 5th scorer")
     parser.add_argument("--skip-preflight", action="store_true")
+    parser.add_argument(
+        "--stock-judge",
+        action="store_true",
+        help="skip the JSON transport patches (see mlflow/judge_json.py) and use "
+        "MLflow's prompt-injected JSON as-is",
+    )
     args = parser.parse_args()
+
+    if args.stock_judge:
+        os.environ["JUDGE_NATIVE_JSON"] = "0"
+        os.environ["JUDGE_JSON_REPAIR"] = "0"
+    patches = install_judge_patches()
+    print(f"judge JSON patches: {patches}")
 
     mlflow.set_tracking_uri(TRACKING_URI)
     try:

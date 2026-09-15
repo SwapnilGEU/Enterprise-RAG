@@ -75,6 +75,53 @@ emits one retriever span per chunk in rank order (`retrieved_chunk_1..k`), with
 Worth it when you are comparing rerankers or sweeping `top_k`; off by default
 because a single `retrieve` span is the conventional shape.
 
+## When all the scorers fail at once
+
+```
+WARNING ... 'AnswerRelevancy': 1/1 failed, 'ContextualPrecision': 1/1 failed, ...
+```
+
+`DeepEvalScorer.__call__` swallows every exception into `Feedback(error=e)`, so
+the harness only tells you *that* they failed. Get the real message:
+
+```bash
+python mlflow/diagnose.py            # latest run
+python mlflow/diagnose.py --full     # whole error text
+```
+
+The usual cause is **JSON transport, not the judge's opinion**. MLflow asks for
+structured output by prompt injection — it appends the schema to the prompt and
+runs a bare `json.loads` on the reply, with no fence stripping. A judge that
+answers with
+
+````
+```json
+{"verdicts": [...]}
+```
+````
+
+fails to parse, every row, every scorer. `mlflow/judge_json.py` fixes it two ways,
+both on by default and both applied before the scorers are built:
+
+1. **Native structured output** (`JUDGE_NATIVE_JSON=0` to disable) — MLflow never
+   passes `response_format` down, so Gemini's own JSON mode is left off. Passing
+   the schema through makes the gateway set `responseJsonSchema` +
+   `responseMimeType: application/json`, and Gemini then cannot emit a fence at
+   all. Fix at the source. Falls back to prompt injection if the provider
+   rejects the schema.
+2. **Tolerant parsing** (`JUDGE_JSON_REPAIR=0` to disable) — strips fences and
+   surrounding prose before `json.loads`. The safety net for the fallback.
+
+`--stock-judge` turns both off, to compare against stock MLflow behaviour.
+
+If `diagnose.py` shows something else instead:
+
+| error | meaning |
+|---|---|
+| `API key not valid` / `PERMISSION_DENIED` | `GEMINI_API_KEY` is wrong or is an OAuth token rather than an AI Studio key. |
+| `404 models/... is not found` | wrong model name for your key's API version — try `--judge gemini:/gemini-2.0-flash`. |
+| `429` / quota | free-tier rate limit; run with `--limit` and wait. |
+
 ## Judge notes
 
 - **Every scorer needs an explicit `model=`.** MLflow's default judge is OpenAI
