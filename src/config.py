@@ -1,8 +1,16 @@
 """Configuration and logging — notebook Section 2.
 
 One Config object, one logger, both imported by every other module.
-Secrets come from the environment (see .env.example); nothing secret is
-hardcoded here, so this file is safe to commit.
+
+Every secret is environment-only and defaults to empty — never to a working
+value. A default that works is a default nobody overrides, and it travels with
+the code into git history and into the Docker image. `missing_settings()` is
+the single place that says which are mandatory, so a blank becomes one clear
+message at startup rather than a 403 on the first search.
+
+(This docstring used to claim nothing secret was hardcoded while a live Qdrant
+key sat forty lines below. Both it and the one in .env.example were removed on
+2026-09-16 — they remain in git history and were rotated.)
 """
 
 import logging
@@ -55,13 +63,13 @@ class Config:
     fixed_chunk_overlap: int = 200
 
     # ---- Qdrant ---------------------------------------------------------
-    # The URL is not secret. The API key is environment-only: if it is missing,
-    # get_client() raises with instructions rather than failing obscurely.
-    qdrant_url: str = field(default_factory=lambda: os.environ.get(
-        "QDRANT_URL",
-        "https://bd42146b-72c4-4a22-a4db-84c41cd50634.us-east-2-0.aws.cloud.qdrant.io",
-    ))
-    qdrant_api_key: str = field(default_factory=lambda: os.environ.get("QDRANT_API_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6NWM4MWQzYWUtZGFkMC00ODUwLWEzZjEtNWJlNWEyZDcyMDk5In0.2oS50rWHtx5idY_HlsBZANmq9YKgESluJfWgYLQ4bmI"))
+    # Both are environment-only and both default to empty. An empty value is a
+    # deliberate choice over a working default: a default that happens to work
+    # is a default nobody sets, and it ships inside the Docker image with the
+    # code. `missing_settings()` turns a blank into one clear message at
+    # startup instead of an obscure 403 on the first search.
+    qdrant_url: str = field(default_factory=lambda: os.environ.get("QDRANT_URL", ""))
+    qdrant_api_key: str = field(default_factory=lambda: os.environ.get("QDRANT_API_KEY", ""))
     collection_name: str = field(default_factory=lambda: os.environ.get("QDRANT_COLLECTION", "RAG-hybrid-search"))
 
     # Qdrant Cloud computes these server-side (cloud_inference=True), so nothing
@@ -99,8 +107,30 @@ class Config:
     pg_port: str = field(default_factory=lambda: os.environ.get("PG_PORT", "5432"))
     pg_dbname: str = field(default_factory=lambda: os.environ.get("PG_DBNAME", "RAG"))
     pg_user: str = field(default_factory=lambda: os.environ.get("PG_USER", "postgres"))
-    pg_password: str = field(default_factory=lambda: os.environ.get("PG_PASSWORD", "admin"))
+    # No default password. "admin" was a working default, which is exactly what
+    # makes it dangerous: it works on your laptop, so nothing forces you to set
+    # it before the container reaches anything that matters.
+    pg_password: str = field(default_factory=lambda: os.environ.get("PG_PASSWORD", ""))
     pg_connect_timeout_seconds: int = 5
+
+    # ---- Required settings ----------------------------------------------
+    def missing_settings(self, *, need_postgres: bool = False) -> list[str]:
+        """Which required settings are unset, as env-var names.
+
+        One place that knows what is mandatory, so the API can report it on
+        /ready, a script can refuse to start, and neither has to guess. Postgres
+        is conditional because retrieval and generation do not need it — only
+        the agent and query history do, and a missing password should not stop
+        /query from serving.
+        """
+        missing = []
+        if not self.qdrant_url:
+            missing.append("QDRANT_URL")
+        if not self.qdrant_api_key:
+            missing.append("QDRANT_API_KEY")
+        if need_postgres and not self.pg_password:
+            missing.append("PG_PASSWORD")
+        return missing
 
     # ---- Derived paths --------------------------------------------------
     @property

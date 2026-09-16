@@ -1,4 +1,14 @@
-# ---- Index-time (parsing + chunking) --------------------------------------
+# Two lifecycles, two dependency sets. The split is not cosmetic: nothing in
+# the query path imports extraction.py, chunking.py, markdown.py or sections.py,
+# so a serving image needs none of the index-time block below. That is enforced
+# by the "only import downward" rule in src/, and verified — importing
+# src/agent.py pulls in config, generation, history, payload and langchain_core,
+# and nothing else.
+#
+# When you get to Docker, this file is the manifest: the serving image installs
+# the SERVE block (plus AGENT if /agent is enabled) and skips INDEX entirely.
+
+# ---- Index-time (parsing + chunking) — NOT needed to serve -----------------
 pymupdf>=1.24
 python-docx>=1.1
 openpyxl>=3.1
@@ -8,20 +18,36 @@ langchain-text-splitters>=0.3
 sentence-transformers>=3.0        # local model, semantic chunk boundaries only
 
 # ---- Query-time (retrieval + generation) ----------------------------------
+# No local embedding model here on purpose: Qdrant Cloud computes dense, sparse
+# and ColBERT vectors server-side (cloud_inference=True), so serving needs no
+# fastembed, no sentence-transformers and no GPU.
 qdrant-client>=1.12
 langchain-core>=0.3
 langchain-ollama>=0.2
 requests>=2.31
 
-# ---- Agent ----------------------------------------------------------------
+# ---- API ------------------------------------------------------------------
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+python-dotenv>=1.0
+
+# ---- Agent (only when API_ENABLE_AGENT=true) ------------------------------
 langchain>=0.3
 langchain-community>=0.3
 langgraph>=0.2
 psycopg2-binary>=2.9
 SQLAlchemy>=2.0
 
+# ---- Evaluation (not needed to serve) -------------------------------------
+#   pip install -r mlflow/requirements-eval.txt
+
 # ---- Dev ------------------------------------------------------------------
 pytest>=8.0
+httpx>=0.27                       # fastapi.testclient
 
 # ---- Coming next ----------------------------------------------------------
-# mlflow>=2.16
+# opentelemetry-distro
+# opentelemetry-instrumentation-fastapi
+# opentelemetry-exporter-otlp
+# prometheus-fastapi-instrumentator

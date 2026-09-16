@@ -21,6 +21,7 @@ degrades to a no-op decorator and the pipeline runs exactly as before.
 
 import os
 from functools import partial
+from typing import Any, Callable, cast
 
 from qdrant_client import models
 
@@ -59,7 +60,10 @@ try:
     # When chunks get their own retriever spans, the parent must NOT be a
     # retriever span -- a retriever span nested inside another one is ignored.
     _parent_span_type = SpanType.CHAIN if SPAN_PER_CHUNK else SpanType.RETRIEVER
-    _trace_retriever = mlflow.trace(span_type=_parent_span_type, name="retrieve")
+    _trace_retriever = cast(
+        Any,
+        mlflow.trace(span_type=_parent_span_type, name="retrieve"),
+    )
 except Exception:  # mlflow not installed, or too old for SpanType
     def _trace_retriever(fn):
         return fn

@@ -164,7 +164,10 @@ def semantic_chunk_unit(unit: StructuralUnit, config: Config = CONFIG) -> list[d
             overlap=config.fixed_chunk_overlap,
         )
 
-    embeddings = embedder.encode(sentences)
+    # Request NumPy output explicitly: semantic_breakpoints uses NumPy
+    # operations, and SentenceTransformer may otherwise be typed as returning
+    # a torch.Tensor.
+    embeddings = np.asarray(embedder.encode(sentences, convert_to_numpy=True))
     breakpoints = semantic_breakpoints(embeddings, config.semantic_chunk_percentile)
 
     chunk_texts, start = [], 0

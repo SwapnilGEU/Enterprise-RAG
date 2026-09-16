@@ -28,6 +28,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import Any, cast
 
 from dotenv import load_dotenv
 
@@ -56,10 +57,18 @@ def latest_run_id(experiment_name: str) -> tuple[str, str] | None:
         max_results=1,
         output_format="list",
     )
-    if not runs:
+    if runs is None or len(runs) == 0:
         print(f"No runs in {experiment_name!r} yet.")
         return None
-    return runs[0].info.run_id, exp.experiment_id
+    # Use getattr here because some MLflow type stubs incorrectly expose
+    # ``info`` as a method, which makes direct ``.run_id`` access fail type
+    # checking even though the runtime object is a Run.
+    run_info = getattr(runs[0], "info", None)
+    run_id = getattr(run_info, "run_id", None)
+    if not run_id:
+        print("The most recent run did not include a run ID.")
+        return None
+    return str(run_id), exp.experiment_id
 
 
 def describe_error(err) -> str:
@@ -105,12 +114,15 @@ def main() -> int:
     if experiment_id is not None:
         kwargs["locations"] = [experiment_id]
     traces = mlflow.search_traces(**kwargs)
-    if not traces:
+    if traces is None or len(traces) == 0:
         print("No traces on that run.")
         return 1
 
     failures = 0
     for trace in traces:
+        # MLflow's type stubs currently infer items from ``search_traces`` as
+        # Hashable, although the runtime values are Trace objects.
+        trace = cast(Any, trace)
         assessments = getattr(trace.info, "assessments", None) or []
         request = str(trace.data.request or "")[:90]
         print(f"--- trace {trace.info.trace_id}  {request}")
