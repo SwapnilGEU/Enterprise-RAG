@@ -1,6 +1,106 @@
-# RAG evaluation — MLflow + DeepEval, judged by Gemini
+# Evaluation — MLflow + DeepEval
 
-## Run it
+Two modules, two questions:
+
+| | asks | judge |
+|---|---|---|
+| `ragflow.py` | was the **answer** any good? | always |
+| `agentflow.py` | did the agent pick the right **tool**? | only with `--judge-answers` |
+
+They share `judge_json.py` (JSON transport) and `judge_quota.py` (429 handling).
+
+## Agent evaluation — `agentflow.py`
+
+```bash
+python mlflow/agentflow.py --smoke     # preflight + one case
+python mlflow/agentflow.py             # the whole tool_routing.json set
+```
+
+Reads `evaluation/datasets/tool_routing.json` — `{query, expected_tool,
+reference_answer}` — and runs DeepEval's four agent metrics:
+
+| scorer | judged? | what it measures |
+|---|---|---|
+| `TaskCompletion` | LLM | did the agent actually finish the job |
+| `ToolCorrectness` | **no — deterministic** | did it pick the right tool |
+| `ArgumentCorrectness` | LLM | were the arguments it passed sane |
+| `StepEfficiency` | LLM | did it take an optimal path, or wander |
+
+`ToolCorrectness` is pure comparison — DeepEval's metric has no
+`evaluation_model` at all — so routing accuracy costs nothing and cannot be
+rate limited. That makes `--no-judge` the check to reach for on a spent quota:
+
+```bash
+python mlflow/agentflow.py --no-judge      # ToolCorrectness only, zero judge calls
+```
+
+### Tool calls come ONLY from TOOL spans — and this repo had none
+
+The agent-side twin of the retriever-span trap below, and worse, because
+`src/agent.py` has no tracing at all and nothing in this repo calls
+`mlflow.langchain.autolog()`. DeepEval's `tools_called` is built solely by
+`_extract_tool_calls_from_trace`, which reads `trace.search_spans(TOOL)` and
+returns **`None`** when there are none — and `ToolCorrectness` and
+`ArgumentCorrectness` *raise* on a `None`. Uninstrumented, every single row
+errors, and `DeepEvalScorer.__call__` swallows that into the same
+uninformative "N/N failed" as a bad judge or a spent quota.
+
+So `instrument_tools()` wraps each tool from `src.agent.build_tools` in a TOOL
+span before the graph compiles. Wrapping `StructuredTool.func` (rather than
+re-decorating the tool) leaves name, description and args schema exactly as the
+LLM sees them, so measuring the agent does not change how it routes. Verified:
+the wrapper survives LangChain's own `invoke` path and DeepEval then sees each
+call's name, arguments and output.
+
+Two consequences worth knowing:
+
+- **It must run before `build_agent()`**, which caches the compiled graph in a
+  module singleton. `instrument_tools()` resets that singleton to be safe.
+- **`--smoke` proves it.** The preflight prints how many TOOL spans DeepEval can
+  actually see and aborts at zero. Point it at a case that *must* call a tool —
+  a question that correctly routes to nothing proves nothing.
+
+### `direct_llm`, and why `None` had to become `[]`
+
+`direct_llm` is the dataset's name for "answer without calling anything", and it
+maps to an empty `expected_tool_calls` list, not a tool of that name. DeepEval
+scores "expected nothing, called nothing" as 1.0 and "expected nothing, called
+something" as 0.0 — exactly the intent.
+
+But a case that calls no tools has no TOOL spans, so `tools_called` comes back
+`None` and both tool metrics raise on it. `patch_empty_tools_called()` turns
+that `None` into `[]`. That is only honest because the preflight has already
+proved spans appear when tools *do* run — with that established, an empty list
+means "really called nothing" rather than "instrumentation is broken".
+
+### Expectation keys are not a free choice
+
+`expected_tool_calls` is the only key MLflow maps to DeepEval's
+`expected_tools`, and it must be a **list of dicts** each carrying a `name`.
+`expected_output` is the only key mapped to `expected_output`. Anything else
+lands in `context` and these four metrics ignore it. `load_dataset` does that
+reshaping from your `{query, expected_tool, reference_answer}` rows.
+
+### Scoring is subset, not sequence equality
+
+Verified against the metric: expected tool present plus an extra call scores
+1.0, and a repeated call of the expected tool scores 1.0. So an agent that
+consults SQL and then does arithmetic on the result is not punished for it —
+which is right for a routing dataset. (MLflow's own built-in
+`ToolCallCorrectness(should_exact_match=True)` is stricter: it requires the call
+*count* to match, and would fail that case.)
+
+### Relationship to `evaluation/eval_agent.py`
+
+The standalone script still works and still prints the richer
+failure-by-failure console report and CSV/JSON files. `agentflow.py` is the
+same measurement inside MLflow, so runs are comparable over time and the traces
+are inspectable in the UI. Keep the script for debugging one bad case; use the
+module for tracking the number.
+
+## RAG evaluation — `ragflow.py`
+
+### Run it
 
 ```bash
 pip install -r mlflow/requirements-eval.txt
@@ -45,7 +145,15 @@ two-phase note under "Judge notes".
 | Qdrant | the `RAG-hybrid-search` collection populated. |
 | `evaluation/datasets/rag_qa.json` | a JSON list of `{query, reference_answer}`. Not in the repo — see `rag_qa.example.json` next to it for the shape. |
 
+`agentflow.py` additionally needs **Postgres** — `build_agent()` constructs the
+SQL toolkit at build time, so the agent will not compile without it — and needs
+`GEMINI_API_KEY` only when you pass `--judge-answers`.
+
 ## The thing that actually breaks this: judge quota
+
+(Applies to `ragflow.py` always, and to `agentflow.py` only under
+`--judge-answers`. Routing scores never touch a judge, so they survive this
+entirely.)
 
 Measured on 2026-09-15, from the 429 body itself:
 
