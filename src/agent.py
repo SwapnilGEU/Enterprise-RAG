@@ -54,27 +54,65 @@ from src.history import save_query_history
 from src.payload import format_source
 
 
+# Tool-call ids from the automatic pre-search carry this prefix, so everything
+# downstream can tell "the graph did this on its own" apart from "the model
+# decided to do this". Without the distinction `tools_used` reads `rag_tool` on
+# every single answer — which is noise in the UI, and would quietly make
+# agentflow's ToolCorrectness grade the plumbing instead of the model.
+PREFETCH_CALL_PREFIX = "ragfirst-"
+
+
+def is_prefetch_call(call: dict) -> bool:
+    return str(call.get("id", "")).startswith(PREFETCH_CALL_PREFIX)
+
+
 def _rag_first_enabled() -> bool:
     return os.environ.get("AGENT_RAG_FIRST", "1").strip().lower() not in ("0", "false", "no", "off")
 
 
+# Rewritten 2026-09-17 after the first version broke tool routing. It opened
+# with "the knowledge base has ALREADY been searched ... base your answer on
+# it", and a 4b model took that as "answer from the knowledge base or give up":
+# asked for the weather in Prayagraj it replied "I don't have the current
+# weather information" without ever calling `get_weather`.
+#
+# Two lessons are baked in below. Put the routing rules BEFORE the note about
+# the pre-search, so the first thing read is what to call rather than what has
+# already happened. And name the exact failure — "never tell the user you lack
+# information before calling the tool that would provide it" — because a small
+# model follows a concrete prohibition far better than a general principle.
 AGENT_SYSTEM_PROMPT = SystemMessage(
-    content="""You are a technical assistant with access to specialized tools.
+    content="""You are a technical assistant with access to these tools:
 
-The knowledge base has ALREADY been searched for this question, and the result
-is in the conversation above as a `rag_tool` result. Base your answer on it.
+- `get_weather` — current weather for a city.
+- `calculator` — arithmetic.
+- `sql_tool` — the query_history database: past questions, counts, latency, failures.
+- `rag_tool` — the document knowledge base: machine learning, NLP, LLMs, RAG.
 
-If it answers the question, answer from it and cite its sources. Do not offer
-to search the knowledge base — that has happened. Never ask the user whether
-they would like you to look something up; either look it up or answer.
+ROUTING — decide this first, every time:
+- Asking about weather, temperature or conditions anywhere? Call `get_weather`.
+- Asking to compute or calculate something? Call `calculator`.
+- Asking about past queries, usage, latency, counts or failures? Call `sql_tool`.
+- Asking about machine learning, NLP, LLMs or the documents? Use the knowledge
+  base result already in the conversation.
 
-If it does not answer the question, say so plainly and then use whichever other
-tool fits: `sql_tool` for the query history, `calculator` for arithmetic,
-`get_weather` for weather. You may call `rag_tool` again with a different
-search phrasing if you think the first one missed.
+NEVER tell the user you do not have information before calling the tool that
+would provide it. If the question is about weather, call `get_weather` — do not
+say you lack weather data. The same goes for every other tool.
 
-Do not answer technical questions from your own memory when the knowledge base
-result covers them."""
+A knowledge base search for this question has already been run automatically,
+and its result appears above as a `rag_tool` result. It is there for
+convenience and MAY BE COMPLETELY IRRELEVANT — an automatic search for a
+weather question still returns documents about machine learning. Judge whether
+it actually answers the question. If it does not, ignore it and route by the
+rules above.
+
+Do not offer to search the knowledge base; that has already happened. Never ask
+the user whether they would like you to look something up — look it up, or
+answer. You may call `rag_tool` again with different phrasing if you think the
+automatic search missed.
+
+When you answer from the knowledge base result, cite its sources."""
 )
 
 # Used when AGENT_RAG_FIRST=0 — the model is back in charge of reaching for the
@@ -201,13 +239,24 @@ def build_agent(config: Config = CONFIG):
         result and the model reads it like any other.
         """
         question = state["user_query"]
-        call_id = f"ragfirst-{uuid.uuid4().hex[:8]}"
+        call_id = f"{PREFETCH_CALL_PREFIX}{uuid.uuid4().hex[:8]}"
 
         try:
             output = tools_by_name["rag_tool"].invoke({"query": question})
         except Exception as exc:  # noqa: BLE001
             logger.error(f"retrieve_first: rag_tool failed -- {exc!r}")
             output = f"Knowledge base lookup failed: {exc}"
+
+        # Labelled, because the search was automatic rather than chosen. A
+        # hybrid retriever always returns its top k — there is no "no match" —
+        # so for a weather question it hands back documents about transformers
+        # with no hint that they are unrelated. Saying so in the message is
+        # cheaper than hoping a 4b model works it out.
+        output = (
+            f"[Automatic knowledge-base search for: {question}]\n"
+            f"[These are the closest documents found. They may be unrelated to the "
+            f"question — if so, ignore them and use the tool that fits.]\n\n{output}"
+        )
 
         return {
             "messages": [
@@ -236,11 +285,15 @@ def build_agent(config: Config = CONFIG):
         content = state["messages"][-1].content
         final_message = content if isinstance(content, str) else str(content)
 
+        # Only what the model chose. The automatic pre-search is excluded, so
+        # this column keeps meaning what it always meant — which tool the agent
+        # decided to reach for.
         used_tools = set()
         for msg in state["messages"]:
             if isinstance(msg, AIMessage) and msg.tool_calls:
                 for tc in msg.tool_calls:
-                    used_tools.add(tc["name"])
+                    if not is_prefetch_call(tc):
+                        used_tools.add(tc["name"])
 
         save_query_history(
             session_id=state.get("session_id", "default"),

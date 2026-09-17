@@ -186,20 +186,32 @@ def agent(body: AgentRequest, request: Request) -> AgentResponse:
     # dict.fromkeys dedupes while preserving call order — the same walk
     # evaluation/eval_agent.py and mlflow/agentflow.py use, so the API reports
     # tool usage identically to how it is measured.
-    tools_used = list(
-        dict.fromkeys(
-            call["name"]
-            for message in state["messages"]
-            if getattr(message, "tool_calls", None)
-            for call in message.tool_calls
-        )
-    )
+    #
+    # The automatic knowledge-base pre-search is reported separately rather than
+    # mixed in: it happens on every question, so folding it into `tools_used`
+    # would put `rag_tool` on every answer and drown the one fact this field
+    # exists to convey — what the model actually decided to call.
+    from src.agent import is_prefetch_call
 
-    logger.info("agent answered", extra={"latency_ms": latency_ms, "tools_used": tools_used})
+    calls = [
+        call
+        for message in state["messages"]
+        if getattr(message, "tool_calls", None)
+        for call in message.tool_calls
+    ]
+    tools_used = list(dict.fromkeys(c["name"] for c in calls if not is_prefetch_call(c)))
+    prefetched = any(is_prefetch_call(c) for c in calls)
+
+    logger.info(
+        "agent answered",
+        extra={"latency_ms": latency_ms, "tools_used": tools_used,
+               "retrieval_prefetched": prefetched},
+    )
 
     return AgentResponse(
         answer=_message_text(state["messages"][-1].content),
         tools_used=tools_used,
+        retrieval_prefetched=prefetched,
         request_id=request_id,
         latency_ms=latency_ms,
     )

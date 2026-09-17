@@ -51,7 +51,16 @@ class AgentRequest(BaseModel):
 
 class AgentResponse(BaseModel):
     answer: str
-    tools_used: list[str] = Field([], description="In call order, deduplicated")
+    tools_used: list[str] = Field(
+        [], description="Tools the model chose to call, in order, deduplicated. "
+                        "Excludes the automatic knowledge-base pre-search."
+    )
+    retrieval_prefetched: bool = Field(
+        False,
+        description="True when the graph searched the knowledge base before the "
+                    "model's first turn (AGENT_RAG_FIRST). Reported separately "
+                    "because it happens on every question and is not a routing decision.",
+    )
     request_id: str
     latency_ms: float
 

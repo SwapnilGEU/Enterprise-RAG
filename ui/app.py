@@ -57,7 +57,8 @@ HEALTH_TIMEOUT = 5
 
 CSV_COLUMNS = [
     "timestamp", "endpoint", "question", "answer", "citations", "tools_used",
-    "latency_ms", "degraded", "failure_stage", "status", "error", "request_id",
+    "kb_prefetched", "latency_ms", "degraded", "failure_stage", "status",
+    "error", "request_id",
 ]
 
 
@@ -89,6 +90,7 @@ def build_row(endpoint: str, question: str, payload: dict, status: str,
         "answer": payload.get("answer", ""),
         "citations": " | ".join(s.get("citation", "") for s in sources),
         "tools_used": ", ".join(payload.get("tools_used") or []),
+        "kb_prefetched": bool(payload.get("retrieval_prefetched", False)),
         "latency_ms": payload.get("latency_ms", round(latency_ms, 1)),
         "degraded": bool(payload.get("degraded", False)),
         "failure_stage": payload.get("failure_stage") or "",
@@ -257,8 +259,18 @@ def main() -> None:
                         f"Degraded answer — the pipeline failed at: {row['failure_stage'] or 'unknown'}. "
                         "Retrieval may not have contributed."
                     )
+                # The pre-search is shown apart from the tools the model chose,
+                # so "tools:" keeps meaning "what the agent decided" instead of
+                # reading rag_tool on literally every answer.
+                marks = []
+                if row.get("kb_prefetched"):
+                    marks.append("knowledge base pre-searched")
                 if row["tools_used"]:
-                    st.caption(f"tools: {row['tools_used']}")
+                    marks.append(f"tools chosen: {row['tools_used']}")
+                elif row["endpoint"] == "agent":
+                    marks.append("no tool chosen")
+                if marks:
+                    st.caption(" · ".join(marks))
                 sources = row.get("_sources") or []
                 if sources:
                     with st.expander(f"{len(sources)} source(s)"):
