@@ -40,8 +40,12 @@ request_id_var: ContextVar[str] = ContextVar("request_id", default="")
 _STANDARD = frozenset(
     """args asctime created exc_info exc_text filename funcName levelname levelno
     lineno module msecs message msg name pathname process processName relativeCreated
-    stack_info thread threadName taskName""".split()
+    stack_info thread threadName taskName
+    color_message""".split()
 )
+# `color_message` is uvicorn's ANSI-coloured copy of the message, passed as an
+# extra. Useful in a terminal, pure noise in Loki — it duplicates `message` with
+# escape codes baked in, so it is dropped rather than shipped.
 
 
 def _trace_ids() -> dict:
@@ -119,10 +123,28 @@ def configure_logging() -> None:
     root.handlers = [handler]
     root.setLevel(settings.LOG_LEVEL)
 
-    for name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
+    for name in ("uvicorn", "uvicorn.error"):
         target = logging.getLogger(name)
         target.handlers = [handler]
         target.propagate = False
 
-    # This one is noisy at INFO and says nothing the access log does not.
+    # `src/config.py::setup_logging` gives the "rag" logger its own console
+    # handler AND leaves propagate=True, so without this every pipeline line is
+    # emitted twice: once plain through that handler, once JSON through root. In
+    # Loki that reads as duplicate events rather than a formatting bug.
+    #
+    # Taking the handlers over also stops this process writing logs/rag.log.
+    # That is deliberate for a service: a log file inside a container is
+    # invisible to whatever collects logs and grows without bound. Scripts never
+    # call configure_logging(), so they keep their file.
+    rag = logging.getLogger("rag")
+    rag.handlers = [handler]
+    rag.propagate = False
+
+    # uvicorn's access line duplicates the richer one the request middleware
+    # emits — ours carries request_id, duration_ms and the route. Silencing INFO
+    # here halves the log volume per request; WARNING and above still come out.
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+
+    # Noisy at INFO and says nothing the access log does not.
     logging.getLogger("httpx").setLevel(logging.WARNING)
