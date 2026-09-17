@@ -14,19 +14,22 @@ by changing one environment variable.
 
 Queueing
 --------
-Strictly sequential, **one query per Streamlit rerun**.
+Ask and it sends — there is no separate "add" step. The queue exists only so a
+second question typed while the first is still answering is **held rather than
+lost**. It answers in order, one at a time, and nothing is dropped or
+interrupted.
 
-The obvious approach — loop over the queue inside one script run — blocks the
-whole script, so Streamlit paints nothing until the last answer is in and the
-page just sits there looking broken. Processing one item and calling
-`st.rerun()` means every answer appears the moment it arrives, and the progress
-counter is real rather than a spinner.
+Mechanically: each submission appends to a pending list, and the runner handles
+**one item per Streamlit rerun**. Looping over the whole list inside a single
+run would block the script, so Streamlit would paint nothing until the last
+answer landed and the page would just sit there looking broken. One item then
+`st.rerun()` means every answer appears the moment it arrives.
 
 Sequential rather than parallel because the API caps concurrent generations at
 `API_MAX_CONCURRENT_GENERATIONS` (default 2) and behind that is one 4b model on
-a 6GB card. Firing five at once does not finish sooner — three block on the
-server's semaphore and, past `API_GENERATION_QUEUE_TIMEOUT`, turn into 503s.
-Parallelism here would relocate the queue and add a failure mode, not add speed.
+a 6GB card. Firing several at once does not finish sooner — the extras block on
+the server's semaphore and, past `API_GENERATION_QUEUE_TIMEOUT`, turn into
+503s. Parallelism here would relocate the queue and add a failure mode.
 """
 
 from __future__ import annotations
@@ -273,56 +276,50 @@ def main() -> None:
     # the right place on the page rather than at the bottom.
     status_slot = st.empty()
 
-    # ---- queue -------------------------------------------------------------
-    st.divider()
+    # ---- pending ------------------------------------------------------------
+    # Only shown when something is actually waiting. With one-at-a-time sending
+    # a visible empty queue is just furniture.
     pending = st.session_state.queue
-    st.subheader(f"Queue ({len(pending)})")
-
     if pending:
-        for index, question in enumerate(list(pending)):
-            columns = st.columns([12, 1])
-            columns[0].write(f"{index + 1}. {question}")
-            if columns[1].button("✕", key=f"rm{index}", disabled=st.session_state.running):
-                st.session_state.queue.pop(index)
-                st.rerun()
+        waiting = ", ".join(f"“{q[:40]}”" for q in pending[:3])
+        more = f" (+{len(pending) - 3} more)" if len(pending) > 3 else ""
+        st.caption(f"⏳ {len(pending)} waiting: {waiting}{more}")
 
-    question = st.chat_input("Ask a question…", disabled=st.session_state.running)
-    if question:
+    # Never disabled. Streamlit holds a submission made while the script is busy
+    # and delivers it on the next run, where it lands on the queue — which is
+    # exactly the "typed a second question by mistake" case: it waits its turn
+    # instead of being dropped or interrupting the one in flight.
+    question = st.chat_input("Ask a question…")
+    if question and question.strip():
         st.session_state.queue.append(question.strip())
         st.rerun()
 
     # ---- controls ----------------------------------------------------------
-    controls = st.columns(4)
+    controls = st.columns(3)
 
     if controls[0].button(
-        f"Send {len(pending) or ''}".strip(),
-        type="primary", use_container_width=True,
-        disabled=st.session_state.running or not pending,
+        "Stop", use_container_width=True, disabled=not pending,
+        help="Drops what is still waiting. The question already in flight finishes — "
+             "a blocking request cannot be cancelled.",
     ):
-        st.session_state.running = True
-        st.session_state.cancel = False
-        st.rerun()
-
-    if controls[1].button(
-        "Stop", use_container_width=True, disabled=not st.session_state.running,
-        help="Takes effect after the current question — an in-flight request cannot be cancelled.",
-    ):
+        st.session_state.queue = []
         st.session_state.cancel = True
+        st.rerun()
 
     # Two clicks, because one stray click should not destroy a conversation
     # that has not been exported yet.
     if not st.session_state.confirm_clear:
-        if controls[2].button("Clear chat", use_container_width=True,
-                              disabled=st.session_state.running or not st.session_state.chat):
+        if controls[1].button("Clear chat", use_container_width=True,
+                              disabled=not st.session_state.chat):
             st.session_state.confirm_clear = True
             st.rerun()
     else:
-        if controls[2].button("Really clear?", type="secondary", use_container_width=True):
+        if controls[1].button("Really clear?", type="secondary", use_container_width=True):
             st.session_state.chat = []
             st.session_state.confirm_clear = False
             st.rerun()
 
-    controls[3].download_button(
+    controls[2].download_button(
         "Export CSV",
         data=rows_to_csv(st.session_state.chat) if st.session_state.chat else "",
         file_name=f"rag-chat-{datetime.now():%Y%m%d-%H%M%S}.csv",
@@ -336,12 +333,14 @@ def main() -> None:
 
     # ---- the queue runner --------------------------------------------------
     # Last in the script, so everything above has already rendered: the user
-    # sees the answers so far while this one is in flight.
-    if st.session_state.running and st.session_state.queue:
+    # sees the answers so far while this one is in flight. Anything on the queue
+    # runs — no separate Send, which is the whole point of the change.
+    if st.session_state.queue:
         current = st.session_state.queue.pop(0)
-        done = len(st.session_state.chat) + 1
-        total = done + len(st.session_state.queue)
-        status_slot.info(f"Answering {done}/{total}: {current}")
+        remaining = len(st.session_state.queue)
+        status_slot.info(
+            f"Answering: {current}" + (f"  ·  {remaining} waiting" if remaining else "")
+        )
 
         started = time.perf_counter()
         payload, status, error = call_api(
@@ -354,13 +353,8 @@ def main() -> None:
             build_row(endpoint, current, payload, status, error, elapsed)
         )
 
-        if st.session_state.cancel or not st.session_state.queue:
-            st.session_state.running = False
-            st.session_state.cancel = False
-        st.rerun()
-
-    elif st.session_state.running:
-        st.session_state.running = False
+        # Stop clears the queue, so the loop ends naturally after this one.
+        st.session_state.cancel = False
         st.rerun()
 
 

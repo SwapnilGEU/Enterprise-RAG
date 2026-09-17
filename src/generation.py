@@ -70,20 +70,40 @@ def build_context(docs) -> str:
 
 
 def build_prompt(context: str, question: str) -> str:
+    """The prompt, rewritten 2026-09-17 to stop the model narrating its own
+    reasoning about the context.
+
+    The previous version said "give a clear and sufficiently detailed answer,
+    use multiple sentences", and buried the refusal line at the bottom. A 4b
+    model reads that as an instruction to write several sentences no matter
+    what, so asking it "hello" produced a paragraph explaining which topics the
+    context covered and why none of them applied, and only then the refusal.
+
+    Two changes fix that: the refusal is now an exact string with "and nothing
+    else" attached, and there is an explicit ban on describing the context.
+    Length guidance is now "as long as it needs to be" rather than a floor —
+    a floor is what produced the padding.
+    """
     return f"""<|system|>
-You are a helpful question-answering assistant for machine learning.
+You are a question-answering assistant for machine learning topics.
 
 Answer the question using ONLY the supplied context.
 
-Give a clear and sufficiently detailed answer. Use multiple sentences
-when the context provides useful supporting information.
+If the context does not contain the answer, reply with exactly:
+I don't know based on the provided context.
+and nothing else. No explanation, no apology, no description of what the
+context does or does not cover.
+
+Never describe the context itself. Do not write sentences like "the context
+includes...", "the provided context does not define...", or "this query does
+not require...". Answer the question, or give the refusal line above.
+
+Be direct. Use as many sentences as the answer genuinely needs and no more.
+Do not restate the question before answering it.
 
 Do not add information that is not supported by the context.
 
-Cite the relevant source tag at the end of the answer when appropriate.
-
-If the answer is not present in the context, say:
-"I don't know based on the provided context."
+Cite the relevant source tag at the end of the answer when you used it.
 
 <|user|>
 Context:

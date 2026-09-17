@@ -1,6 +1,6 @@
 """Tools and the LangGraph agent — notebook Sections 19 and 20.
 
-Graph shape:  agent -> (tools -> agent)* -> log_to_db -> END
+Graph shape:  retrieve_first -> agent -> (tools -> agent)* -> log_to_db -> END
 
 The loop back from tools to agent is what lets the model chain calls (read a
 SQL result, then decide it needs another query) rather than being limited to
@@ -9,13 +9,43 @@ through the graph gets logged.
 
 Everything here is built by factory functions — `import src.agent` opens no
 connections and loads no models.
+
+Why `retrieve_first` exists (added 2026-09-17)
+----------------------------------------------
+The system prompt below used to say the model MUST call `rag_tool` before
+answering a technical question. `qwen3:4b-instruct` did not reliably obey it:
+asked "what is rag", it answered from its own weights and then offered — "I can
+search the knowledge base for more detailed insights, would you like me to?" —
+while the knowledge base held the answer all along. Instruction-following at 4b
+is not strong enough to carry a rule that matters this much.
+
+So the knowledge base is no longer consulted at the model's discretion. The
+graph retrieves **first, always**, and hands the result to the model as a
+completed `rag_tool` call before it gets its first turn. The model still has
+every tool available afterwards, so it can follow up with SQL, arithmetic or
+weather — it simply no longer gets to skip the knowledge base.
+
+Two consequences worth knowing:
+
+* Every question now pays one retrieval, including "what is 2+2". On this stack
+  that is a second or two against a hosted Qdrant. `AGENT_RAG_FIRST=0` turns it
+  off and restores the model's discretion.
+* It changes what `mlflow/agentflow.py` measures. `ToolCorrectness` is subset
+  based, so a case expecting `get_weather` still passes when `rag_tool` also
+  ran — but the `direct_llm` rows in `evaluation/datasets/tool_routing.json`
+  expect *no* tool at all and will now score 0. That is an honest result rather
+  than a regression: with rag-first there is no toolless path. Either evaluate
+  with `AGENT_RAG_FIRST=0` to measure the model's own routing, or update those
+  rows to expect `rag_tool`.
 """
 
 import operator
+import os
 import time
+import uuid
 from typing import Annotated, Sequence, TypedDict
 
-from langchain_core.messages import AIMessage, BaseMessage, SystemMessage
+from langchain_core.messages import AIMessage, BaseMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 
 from src.config import CONFIG, Config, logger
@@ -24,7 +54,32 @@ from src.history import save_query_history
 from src.payload import format_source
 
 
+def _rag_first_enabled() -> bool:
+    return os.environ.get("AGENT_RAG_FIRST", "1").strip().lower() not in ("0", "false", "no", "off")
+
+
 AGENT_SYSTEM_PROMPT = SystemMessage(
+    content="""You are a technical assistant with access to specialized tools.
+
+The knowledge base has ALREADY been searched for this question, and the result
+is in the conversation above as a `rag_tool` result. Base your answer on it.
+
+If it answers the question, answer from it and cite its sources. Do not offer
+to search the knowledge base — that has happened. Never ask the user whether
+they would like you to look something up; either look it up or answer.
+
+If it does not answer the question, say so plainly and then use whichever other
+tool fits: `sql_tool` for the query history, `calculator` for arithmetic,
+`get_weather` for weather. You may call `rag_tool` again with a different
+search phrasing if you think the first one missed.
+
+Do not answer technical questions from your own memory when the knowledge base
+result covers them."""
+)
+
+# Used when AGENT_RAG_FIRST=0 — the model is back in charge of reaching for the
+# knowledge base, so it needs telling.
+AGENT_SYSTEM_PROMPT_NO_PREFETCH = SystemMessage(
     content="""You are a technical assistant with access to specialized tools.
 For any factual, technical, or conceptual questions about machine learning, NLP, or LLMs,
 you MUST call `rag_tool` to check the knowledge base before answering.
@@ -125,12 +180,54 @@ def build_agent(config: Config = CONFIG):
     from langgraph.prebuilt import ToolNode
 
     tools = build_tools(config)
+    tools_by_name = {t.name: t for t in tools}
     llm_with_tools = get_llm(config).bind_tools(tools)
+
+    rag_first = _rag_first_enabled()
+    system_prompt = AGENT_SYSTEM_PROMPT if rag_first else AGENT_SYSTEM_PROMPT_NO_PREFETCH
+
+    def retrieve_first_node(state: AgentState):
+        """Search the knowledge base before the model gets a turn.
+
+        The result is injected as a genuine `rag_tool` exchange — an AIMessage
+        carrying the tool call, then the ToolMessage holding its output. Shaping
+        it that way rather than dumping the text into a system message means
+        everything downstream that counts tool usage sees the truth: the tool
+        really did run, so `log_to_db_node`, the API's `tools_used`, and
+        MLflow's TOOL spans all record it without special-casing.
+
+        A failure here is not fatal. If retrieval is down the agent should still
+        answer what it can with its other tools, so the error becomes the tool
+        result and the model reads it like any other.
+        """
+        question = state["user_query"]
+        call_id = f"ragfirst-{uuid.uuid4().hex[:8]}"
+
+        try:
+            output = tools_by_name["rag_tool"].invoke({"query": question})
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"retrieve_first: rag_tool failed -- {exc!r}")
+            output = f"Knowledge base lookup failed: {exc}"
+
+        return {
+            "messages": [
+                AIMessage(
+                    content="",
+                    tool_calls=[{
+                        "name": "rag_tool",
+                        "args": {"query": question},
+                        "id": call_id,
+                        "type": "tool_call",
+                    }],
+                ),
+                ToolMessage(content=str(output), tool_call_id=call_id, name="rag_tool"),
+            ]
+        }
 
     def agent_node(state: AgentState):
         # Prepend the system prompt each turn so the routing instruction never
         # scrolls out of the model's attention as the message history grows.
-        messages = [AGENT_SYSTEM_PROMPT] + list(state["messages"])
+        messages = [system_prompt] + list(state["messages"])
         return {"messages": [llm_with_tools.invoke(messages)]}
 
     def log_to_db_node(state: AgentState):
@@ -168,13 +265,19 @@ def build_agent(config: Config = CONFIG):
     graph.add_node("tools", ToolNode(tools))
     graph.add_node("log_to_db", log_to_db_node)
 
-    graph.add_edge(START, "agent")
+    if rag_first:
+        graph.add_node("retrieve_first", retrieve_first_node)
+        graph.add_edge(START, "retrieve_first")
+        graph.add_edge("retrieve_first", "agent")
+    else:
+        graph.add_edge(START, "agent")
+
     graph.add_conditional_edges("agent", should_continue, {"tools": "tools", "log_to_db": "log_to_db"})
     graph.add_edge("tools", "agent")
     graph.add_edge("log_to_db", END)
 
     _agent = graph.compile()
-    logger.info("Agent graph compiled.")
+    logger.info(f"Agent graph compiled. rag_first={rag_first}")
     return _agent
 
 
