@@ -22,8 +22,8 @@ is not strong enough to carry a rule that matters this much.
 So the knowledge base is no longer consulted at the model's discretion. The
 graph retrieves **first, always**, and hands the result to the model as a
 completed `rag_tool` call before it gets its first turn. The model still has
-every tool available afterwards, so it can follow up with SQL, arithmetic or
-weather — it simply no longer gets to skip the knowledge base.
+every tool available afterwards, so it can follow up with SQL or weather — it
+simply no longer gets to skip the knowledge base.
 
 Two consequences worth knowing:
 
@@ -41,9 +41,10 @@ Two consequences worth knowing:
 
 import operator
 import os
+import re
 import time
 import uuid
-from typing import Annotated, Sequence, TypedDict
+from typing import Annotated, Mapping, Sequence, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
@@ -62,12 +63,93 @@ from src.payload import format_source
 PREFETCH_CALL_PREFIX = "ragfirst-"
 
 
-def is_prefetch_call(call: dict) -> bool:
+def is_prefetch_call(call: Mapping[str, object]) -> bool:
     return str(call.get("id", "")).startswith(PREFETCH_CALL_PREFIX)
 
 
 def _rag_first_enabled() -> bool:
     return os.environ.get("AGENT_RAG_FIRST", "1").strip().lower() not in ("0", "false", "no", "off")
+
+
+# --------------------------------------------------------------------------
+# Is the automatic search actually about the question? (added 2026-09-18)
+# --------------------------------------------------------------------------
+# The pre-search note used to open with "MAY BE COMPLETELY IRRELEVANT ... if it
+# does not answer the question, ignore it". That sentence is read on EVERY
+# question, including the ones the knowledge base answers perfectly, and a 4b
+# model took the invitation: asked something covered by the documents it would
+# answer from its own weights and leave the retrieved passages unused.
+#
+# So the note is now conditional. When the search looks like it matched, the
+# model is told plainly to answer from it; only when it does not are the
+# documents waved off. The judgement below is deliberately not the ColBERT
+# score: MaxSim scores are unnormalised sums over query tokens, so their range
+# shifts with query length and a hardcoded threshold would be a guess. Content
+# word overlap between the question and the CITATIONS (document names and
+# section headings — never the generated answer, which echoes the question back
+# and would score high even when nothing matched) needs no calibration and is
+# obvious to debug from the log line it writes.
+#
+# It fails safe. A match it misses falls back to the old cautious wording, which
+# is exactly the behaviour that shipped before.
+
+_STOPWORDS = frozenset("""
+a an and are as at be by can could do does for from give has have how i in into
+is it its list me my of on or please should show so tell than that the their
+then there these this to under was were what when where which who why will with
+would you your about explain describe current right now
+""".split())
+
+
+def _content_words(text: str) -> set[str]:
+    """Lowercase alphanumeric words that carry topic signal."""
+    return {
+        word
+        for word in re.findall(r"[a-z0-9]+", text.lower())
+        if len(word) > 2 and word not in _STOPWORDS
+    }
+
+
+def prefetch_overlap(question: str, tool_output: str) -> float:
+    """Fraction of the question's content words that appear in the citations.
+
+    `rag_tool` formats its result as "<answer>\n\nSources:\n  <citations>", so
+    everything after "Sources:" is document names and heading chains. 0.0 when
+    there is nothing to compare — which routes to the cautious wording.
+    """
+    asked = _content_words(question)
+    if not asked:
+        return 0.0
+    _, _, citations = tool_output.partition("Sources:")
+    cited = _content_words(citations)
+    if not cited:
+        return 0.0
+    return len(asked & cited) / len(asked)
+
+
+# A third of the question's content words turning up in the headings. Tuned to
+# separate "what is hybrid retrieval" (the headings say hybrid and retrieval)
+# from "what is the weather in Delhi" (the headings say neither). Raise it if
+# the agent starts trusting loose matches; the log line below reports the
+# number for every question, so tune from real traffic rather than guessing.
+RAG_PREFETCH_MATCH_MIN = float(os.environ.get("AGENT_RAG_MATCH_MIN", "0.34"))
+
+
+# WMO weather interpretation codes, which is what Open-Meteo returns instead of
+# a human-readable condition. https://open-meteo.com/en/docs
+_WMO_CODES = {
+    0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+    45: "Fog", 48: "Depositing rime fog",
+    51: "Light drizzle", 53: "Moderate drizzle", 55: "Dense drizzle",
+    56: "Light freezing drizzle", 57: "Dense freezing drizzle",
+    61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain",
+    66: "Light freezing rain", 67: "Heavy freezing rain",
+    71: "Slight snowfall", 73: "Moderate snowfall", 75: "Heavy snowfall",
+    77: "Snow grains",
+    80: "Slight rain showers", 81: "Moderate rain showers", 82: "Violent rain showers",
+    85: "Slight snow showers", 86: "Heavy snow showers",
+    95: "Thunderstorm", 96: "Thunderstorm with slight hail", 99: "Thunderstorm with heavy hail",
+}
 
 
 # Rewritten 2026-09-17 after the first version broke tool routing. It opened
@@ -85,13 +167,11 @@ AGENT_SYSTEM_PROMPT = SystemMessage(
     content="""You are a technical assistant with access to these tools:
 
 - `get_weather` — current weather for a city.
-- `calculator` — arithmetic.
 - `sql_tool` — the query_history database: past questions, counts, latency, failures.
 - `rag_tool` — the document knowledge base: machine learning, NLP, LLMs, RAG.
 
 ROUTING — decide this first, every time:
 - Asking about weather, temperature or conditions anywhere? Call `get_weather`.
-- Asking to compute or calculate something? Call `calculator`.
 - Asking about past queries, usage, latency, counts or failures? Call `sql_tool`.
 - Asking about machine learning, NLP, LLMs or the documents? Use the knowledge
   base result already in the conversation.
@@ -101,11 +181,17 @@ would provide it. If the question is about weather, call `get_weather` — do no
 say you lack weather data. The same goes for every other tool.
 
 A knowledge base search for this question has already been run automatically,
-and its result appears above as a `rag_tool` result. It is there for
-convenience and MAY BE COMPLETELY IRRELEVANT — an automatic search for a
-weather question still returns documents about machine learning. Judge whether
-it actually answers the question. If it does not, ignore it and route by the
-rules above.
+and its result appears above as a `rag_tool` result. A note attached to it says
+whether the documents that came back match the question. Read that note first.
+
+THE KNOWLEDGE BASE OUTRANKS YOUR OWN MEMORY. When its result covers the
+question, answer FROM IT and cite its sources. Do not answer a machine
+learning, NLP, LLM or RAG question from memory when the search result addresses
+it — your memory is general, and the exact definitions, figures and names the
+user is asking for are in those documents.
+
+When the question is about weather or the query-history database, the automatic
+search is unrelated to it — ignore the documents and call the tool that fits.
 
 Do not offer to search the knowledge base; that has already happened. Never ask
 the user whether they would like you to look something up — look it up, or
@@ -137,7 +223,7 @@ class AgentState(TypedDict):
 # --------------------------------------------------------------------------
 
 def build_tools(config: Config = CONFIG) -> list:
-    """Construct the four tools. A function rather than module-level objects so
+    """Construct the three tools. A function rather than module-level objects so
     that importing this module doesn't connect to Postgres or load the LLM."""
     import requests
     from langchain.agents import create_agent
@@ -179,24 +265,79 @@ def build_tools(config: Config = CONFIG) -> list:
         return result["messages"][-1].content
 
     @tool
-    def calculator(expression: str) -> str:
-        """Perform mathematical calculations from a valid arithmetic expression."""
-        try:
-            return str(eval(expression, {"__builtins__": {}}, {}))
-        except Exception as exc:
-            return f"Calculation error: {exc}"
-
-    @tool
     def get_weather(city: str) -> str:
-        """Get the current weather for a city."""
+        """Get the current weather for a city, town or place name."""
+        # Open-Meteo, in two calls: name -> coordinates, then coordinates ->
+        # current conditions. No API key and no account, which is what keeps
+        # `.env` free of one more credential for anyone cloning the repo.
+        #
+        # Replaced wttr.in on 2026-09-18. That service is a scraper behind a
+        # strict rate limit: it answers 200 with an HTML error page once you
+        # have asked a few times in a row, so `.json()` raised and every
+        # failure surfaced as the same opaque "Weather lookup failed".
         try:
-            response = requests.get(f"https://wttr.in/{city}?format=j1", timeout=10)
-            data = response.json()["current_condition"][0]
-            return f"Temperature: {data['temp_C']}°C, Condition: {data['weatherDesc'][0]['value']}"
-        except Exception as exc:
-            return f"Weather lookup failed: {exc}"
+            geo = requests.get(
+                "https://geocoding-api.open-meteo.com/v1/search",
+                params={"name": city, "count": 1, "language": "en", "format": "json"},
+                timeout=10,
+            )
+            geo.raise_for_status()
+            places = geo.json().get("results") or []
+            if not places:
+                # A real answer, not an error. The model can relay "no such
+                # place" to the user; it cannot do anything with a traceback.
+                return f"No place found matching '{city}'. Check the spelling, or try adding the country."
+            place = places[0]
 
-    return [rag_tool, sql_tool, calculator, get_weather]
+            forecast = requests.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": place["latitude"],
+                    "longitude": place["longitude"],
+                    # timezone=auto makes `time` the local clock at that place
+                    # rather than UTC, which is what "right now" means to
+                    # whoever asked.
+                    "timezone": "auto",
+                    "current": ",".join([
+                        "temperature_2m", "apparent_temperature", "relative_humidity_2m",
+                        "wind_speed_10m", "precipitation", "weather_code",
+                    ]),
+                },
+                timeout=10,
+            )
+            forecast.raise_for_status()
+            current = forecast.json()["current"]
+        except Exception as exc:  # noqa: BLE001
+            return f"Weather lookup failed: {type(exc).__name__}: {exc}"
+
+        where = ", ".join(
+            part for part in (place.get("name"), place.get("admin1"), place.get("country"))
+            if part
+        )
+
+        # Built with .get() and skipped when absent, rather than indexed. A
+        # KeyError here would escape the try block above and propagate out of
+        # the tool into the graph — one renamed upstream field would turn a
+        # weather question into a 500 instead of a partial answer.
+        parts = [f"Temperature {current['temperature_2m']}°C"] if "temperature_2m" in current else []
+        readings = [
+            ("apparent_temperature", "feels like {}°C"),
+            ("relative_humidity_2m", "humidity {}%"),
+            ("wind_speed_10m", "wind {} km/h"),
+            ("precipitation", "precipitation {} mm"),
+        ]
+        parts += [
+            template.format(current[key]) for key, template in readings if key in current
+        ]
+
+        condition = _WMO_CODES.get(current.get("weather_code"), "Conditions unavailable")
+        observed = f" Observed {current['time']} local time." if current.get("time") else ""
+
+        if not parts:
+            return f"{where} — no current readings were returned for this location."
+        return f"{where} — {condition}. " + ", ".join(parts) + f".{observed}"
+
+    return [rag_tool, sql_tool, get_weather]
 
 
 # --------------------------------------------------------------------------
@@ -252,11 +393,32 @@ def build_agent(config: Config = CONFIG):
         # so for a weather question it hands back documents about transformers
         # with no hint that they are unrelated. Saying so in the message is
         # cheaper than hoping a 4b model works it out.
-        output = (
-            f"[Automatic knowledge-base search for: {question}]\n"
-            f"[These are the closest documents found. They may be unrelated to the "
-            f"question — if so, ignore them and use the tool that fits.]\n\n{output}"
+        #
+        # The label is conditional (see prefetch_overlap above). Telling the
+        # model the documents "may be unrelated" on every single question is
+        # what let it skip a knowledge base that had the answer.
+        overlap = prefetch_overlap(question, str(output))
+        matched = overlap >= RAG_PREFETCH_MATCH_MIN
+        logger.info(
+            f"retrieve_first: citation overlap {overlap:.2f} "
+            f"(threshold {RAG_PREFETCH_MATCH_MIN:.2f}, matched={matched})"
         )
+
+        if matched:
+            note = (
+                "[These documents are about the subject of the question. Answer from "
+                "them and cite the sources — do not answer from your own memory "
+                "instead.]"
+            )
+        else:
+            note = (
+                "[These are the closest documents found, but they do not obviously "
+                "match the question. If the question is about weather or the query "
+                "history, they are unrelated — ignore them and call the tool that "
+                "fits. If they do answer the question, use them and cite the sources.]"
+            )
+
+        output = f"[Automatic knowledge-base search for: {question}]\n{note}\n\n{output}"
 
         return {
             "messages": [

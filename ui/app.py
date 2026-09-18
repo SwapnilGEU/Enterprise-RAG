@@ -194,12 +194,12 @@ def init_state() -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Enterprise RAG", page_icon="📚", layout="wide")
+    st.set_page_config(page_title="DEV RAG", page_icon="🤖", layout="wide")
     init_state()
 
     # ---- sidebar ----------------------------------------------------------
     with st.sidebar:
-        st.title("Enterprise RAG")
+        st.title("🤖 DEV RAG")
 
         base_url = st.text_input("API base URL", value=API_BASE_URL)
         endpoint = st.radio(
@@ -207,15 +207,14 @@ def main() -> None:
             captions=["Retrieval + answer", "LangGraph agent with tools"],
             horizontal=True,
         )
-        top_k = st.slider("top_k", 1, 20, 5, help="Chunks to retrieve. /query only.")
         include_context = st.checkbox(
             "Include chunk text", value=False,
             help="Returns the retrieved text, not just citations. /query only.",
         )
 
         st.divider()
-        st.subheader("Service health")
-        if st.button("Refresh", use_container_width=True):
+        st.subheader("🩺 Service health")
+        if st.button("🔄 Refresh", use_container_width=True):
             st.rerun()
 
         ready, data, error = fetch_ready(base_url)
@@ -239,12 +238,38 @@ def main() -> None:
             st.caption(f"⚠️ unset: {missing}")
 
         st.divider()
+        st.subheader("🗂️ Chat tools")
+
+        # Two clicks, because one stray click should not destroy a conversation
+        # that has not been exported yet.
+        if not st.session_state.confirm_clear:
+            if st.button("🧹 Clear chat", use_container_width=True,
+                         disabled=not st.session_state.chat):
+                st.session_state.confirm_clear = True
+                st.rerun()
+        else:
+            if st.button("⚠️ Really clear?", type="secondary", use_container_width=True):
+                st.session_state.chat = []
+                st.session_state.confirm_clear = False
+                st.rerun()
+            st.caption("Click again to confirm — export first if you want to keep this.")
+
+        st.download_button(
+            "📥 Export CSV",
+            data=rows_to_csv(st.session_state.chat) if st.session_state.chat else "",
+            file_name=f"rag-chat-{datetime.now():%Y%m%d-%H%M%S}.csv",
+            mime="text/csv",
+            use_container_width=True,
+            disabled=not st.session_state.chat,
+        )
+
+        st.divider()
         st.caption(f"session: {st.session_state.session_id}")
 
     # ---- chat history ------------------------------------------------------
-    st.subheader("Conversation")
+    st.subheader("💬 Hey! Want help?")
     if not st.session_state.chat:
-        st.info("No questions yet. Add one below, then Send.")
+        st.info("👋 Nothing asked yet — type a question at the bottom to get started.")
 
     for row in st.session_state.chat:
         with st.chat_message("user"):
@@ -260,15 +285,26 @@ def main() -> None:
                         "Retrieval may not have contributed."
                     )
                 # The pre-search is shown apart from the tools the model chose,
-                # so "tools:" keeps meaning "what the agent decided" instead of
-                # reading rag_tool on literally every answer.
+                # so "tools chosen:" keeps meaning "what the agent decided"
+                # instead of reading rag_tool on literally every answer.
+                #
+                # Collapsed into one phrase when the pre-search is the whole
+                # story. "knowledge base pre-searched · no tool chosen" sitting
+                # under a cited, knowledge-base-grounded answer reads as though
+                # the knowledge base went unused, when that is precisely the
+                # case where it did all the work and the model needed nothing
+                # further. Both facts are still reported — just not as two
+                # clauses that look like they disagree.
                 marks = []
-                if row.get("kb_prefetched"):
-                    marks.append("knowledge base pre-searched")
-                if row["tools_used"]:
-                    marks.append(f"tools chosen: {row['tools_used']}")
-                elif row["endpoint"] == "agent":
-                    marks.append("no tool chosen")
+                if row.get("kb_prefetched") and not row["tools_used"]:
+                    marks.append("answered from the pre-searched knowledge base")
+                else:
+                    if row.get("kb_prefetched"):
+                        marks.append("knowledge base pre-searched")
+                    if row["tools_used"]:
+                        marks.append(f"tools chosen: {row['tools_used']}")
+                    elif row["endpoint"] == "agent":
+                        marks.append("no tool chosen")
                 if marks:
                     st.caption(" · ".join(marks))
                 sources = row.get("_sources") or []
@@ -297,51 +333,38 @@ def main() -> None:
         more = f" (+{len(pending) - 3} more)" if len(pending) > 3 else ""
         st.caption(f"⏳ {len(pending)} waiting: {waiting}{more}")
 
-    # Never disabled. Streamlit holds a submission made while the script is busy
-    # and delivers it on the next run, where it lands on the queue — which is
-    # exactly the "typed a second question by mistake" case: it waits its turn
-    # instead of being dropped or interrupting the one in flight.
-    question = st.chat_input("Ask a question…")
+    # ---- ask, with Stop beside it, pinned to the bottom --------------------
+    # st.chat_input pins itself to the bottom of the viewport only while it is a
+    # direct child of the main container. Putting it in a column — which is what
+    # lets Stop sit beside it — makes it render inline instead, so the whole row
+    # goes inside st.bottom to get the pinning back. st.bottom is the public API
+    # for this as of Streamlit 1.60; before that it was st._bottom, which is why
+    # requirements-ui.txt asks for 1.60.
+    with st.bottom:
+        ask_col, stop_col = st.columns([0.9, 0.1], vertical_alignment="bottom")
+
+        # Never disabled. Streamlit holds a submission made while the script is
+        # busy and delivers it on the next run, where it lands on the queue —
+        # exactly the "typed a second question by mistake" case: it waits its
+        # turn instead of being dropped or interrupting the one in flight.
+        with ask_col:
+            question = st.chat_input("Ask a question…")
+
+        with stop_col:
+            if st.button(
+                "🛑 Stop", use_container_width=True, disabled=not pending,
+                help="Drops what is still waiting. The question already in flight "
+                     "finishes — a blocking request cannot be cancelled.",
+            ):
+                st.session_state.queue = []
+                st.session_state.cancel = True
+                st.rerun()
+
+    # Handled after both widgets are drawn, so Stop is on the page before the
+    # rerun that a new question triggers.
     if question and question.strip():
         st.session_state.queue.append(question.strip())
         st.rerun()
-
-    # ---- controls ----------------------------------------------------------
-    controls = st.columns(3)
-
-    if controls[0].button(
-        "Stop", use_container_width=True, disabled=not pending,
-        help="Drops what is still waiting. The question already in flight finishes — "
-             "a blocking request cannot be cancelled.",
-    ):
-        st.session_state.queue = []
-        st.session_state.cancel = True
-        st.rerun()
-
-    # Two clicks, because one stray click should not destroy a conversation
-    # that has not been exported yet.
-    if not st.session_state.confirm_clear:
-        if controls[1].button("Clear chat", use_container_width=True,
-                              disabled=not st.session_state.chat):
-            st.session_state.confirm_clear = True
-            st.rerun()
-    else:
-        if controls[1].button("Really clear?", type="secondary", use_container_width=True):
-            st.session_state.chat = []
-            st.session_state.confirm_clear = False
-            st.rerun()
-
-    controls[2].download_button(
-        "Export CSV",
-        data=rows_to_csv(st.session_state.chat) if st.session_state.chat else "",
-        file_name=f"rag-chat-{datetime.now():%Y%m%d-%H%M%S}.csv",
-        mime="text/csv",
-        use_container_width=True,
-        disabled=not st.session_state.chat,
-    )
-
-    if st.session_state.confirm_clear:
-        st.caption("Click again to confirm — export first if you want to keep this.")
 
     # ---- the queue runner --------------------------------------------------
     # Last in the script, so everything above has already rendered: the user
@@ -357,7 +380,7 @@ def main() -> None:
         started = time.perf_counter()
         payload, status, error = call_api(
             base_url, endpoint, current,
-            top_k=top_k, include_context=include_context,
+            top_k=None, include_context=include_context,
             session_id=st.session_state.session_id, timeout=REQUEST_TIMEOUT,
         )
         elapsed = (time.perf_counter() - started) * 1000

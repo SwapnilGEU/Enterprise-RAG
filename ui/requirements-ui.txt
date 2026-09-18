@@ -6,6 +6,9 @@
 #   pip install -r ui/requirements-ui.txt
 #   streamlit run ui/app.py
 
-streamlit>=1.40
+# 1.60 is the floor because ui/app.py pins the ask row with `st.bottom`,
+# which became public API in that release (`st._bottom` before, now
+# deprecated). Everything else here works far further back.
+streamlit>=1.60
 requests>=2.31
 pandas>=2.0
