@@ -33,43 +33,129 @@ data/raw/            put your source documents here
 **The one rule:** each module only imports from ones above it in that list. If
 you ever want to import upward, something is in the wrong file.
 
-## Setup
+## Getting started
+
+### 1. Clone and install
 
 ```bash
+git clone <this repo>
+cd Surfprice
+
 python -m venv venv && source venv/bin/activate     # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env          # then fill in QDRANT_API_KEY and PG_PASSWORD
 ```
 
-You also need, running locally: **Ollama** (`ollama pull qwen3:4b-instruct`) and
-**Postgres** (only for the agent). Qdrant is cloud.
+### 2. Add your documents
 
-## Use
+Drop whatever you want the system to answer from into `data/raw/`:
+
+```
+data/raw/
+  your-handbook.pdf
+  your-spec.docx
+  your-table.xlsx
+```
+
+PDF, DOCX and XLSX are supported. Files must sit directly in `data/raw/` —
+sub-folders are not scanned. The repo ships with a few sample papers; delete
+them if you only want your own.
+
+### 3. Set up the services
+
+Three things sit behind the pipeline. Only the first is required to ask a
+question.
+
+**Qdrant — cloud, the vector store.** Free tier is enough.
+
+1. Sign up at <https://cloud.qdrant.io> and create a cluster.
+2. From the cluster page copy the **URL** (looks like
+   `https://xxxxxxxx.us-east-2-0.aws.cloud.qdrant.io`).
+3. Under **Data Access Control / API Keys**, create a key and copy it — it is
+   shown once.
+
+You do not create the collection yourself; `run_index.py` does that on first run.
+
+**Ollama — local, the LLM.** Install from <https://ollama.com>, then:
 
 ```bash
-# 1. Index — run whenever data/raw/ changes
+ollama pull qwen3:4b-instruct
+ollama serve          # or just leave the desktop app running
+```
+
+Check it: `curl http://localhost:11434/api/tags`
+
+**Postgres — local, optional.** Only the agent (`/agent`, `run_agent.py`) and
+query-history logging need it. Plain `/query` works without it.
+
+```sql
+CREATE DATABASE "RAG";
+```
+
+The `query_history` table is created automatically on first connect.
+Set `API_ENABLE_AGENT=false` in `.env` to skip Postgres entirely.
+
+### 4. Fill in `.env`
+
+```bash
+cp .env.example .env
+```
+
+Then edit it. The values you must supply:
+
+| variable | where it comes from |
+|---|---|
+| `QDRANT_URL` | your Qdrant cluster page |
+| `QDRANT_API_KEY` | Qdrant → API Keys |
+| `PG_PASSWORD` | your local Postgres password (skip if agent is off) |
+| `GEMINI_API_KEY` | only for the evaluation judge — not needed to run |
+
+Everything else has a working default. `.env` is gitignored; `.env.example`
+documents every setting.
+
+### 5. Index, then ask
+
+```bash
 python scripts/run_index.py --dry-run      # parse + chunk only, no network, no credentials
-python scripts/run_index.py                # for real
+python scripts/run_index.py                # for real — uploads to Qdrant
 
-# 2. Ask (needs Qdrant + Ollama)
 python scripts/run_query.py "What is hybrid retrieval?"
-python scripts/run_query.py "..." --show-context
-
-# 3. Agent (also needs Postgres)
-python scripts/run_agent.py "How many queries have failed so far?" --show-tools
-
-# 4. Evaluate
-python evaluation/eval_rag.py --limit 3
-python evaluation/eval_agent.py
-
-# 5. Test
-pytest                      # fast, no network
-pytest -m integration       # the ones needing live services
 ```
 
 Start with `--dry-run`. It exercises extraction, Markdown conversion, section
 splitting and chunking without needing a single credential, so if something is
 wrong with your documents you find out in seconds.
+
+## Use
+
+```bash
+# Ask (needs Qdrant + Ollama)
+python scripts/run_query.py "What is hybrid retrieval?"
+python scripts/run_query.py "..." --show-context
+
+# Agent (also needs Postgres)
+python scripts/run_agent.py "How many queries have failed so far?" --show-tools
+
+# API + UI
+uvicorn api.main:app                  # http://localhost:8000  — /ready, /query, /agent
+streamlit run ui/app.py               # http://localhost:8501
+
+# Evaluate
+python evaluation/eval_rag.py --limit 3
+python evaluation/eval_agent.py
+
+# Test
+pytest                      # fast, no network
+pytest -m integration       # the ones needing live services
+```
+
+`curl http://localhost:8000/ready` reports each component separately, so a
+failure names the thing that is down instead of erroring somewhere deeper.
+
+## Running in Docker
+
+Want the API and UI as containers instead of local processes? See
+**[DOCKER.md](DOCKER.md)**. Ollama, Postgres and Qdrant are set up exactly the
+same way — only the API and UI move into containers.
 
 ## How the citations work
 
