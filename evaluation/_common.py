@@ -1,4 +1,21 @@
-"""Shared helpers for both evaluation scripts."""
+"""Shared helpers for the evaluation scripts.
+
+Importing this also loads `.env`, and that is load-bearing rather than a
+convenience. `src/config.py` resolves every setting at import time through
+`field(default_factory=lambda: os.environ.get(...))`, and since the hardcoded
+Qdrant key was removed on 2026-09-16 those defaults are empty strings. So a
+script that imports `src.*` without loading `.env` first now gets a Config full
+of blanks and dies at `get_client()` with "QDRANT_API_KEY is not set" — even
+though the key is sitting in `.env` a directory up.
+
+The API loads it in `api/main.py`, and `mlflow/ragflow.py` and `agentflow.py`
+do it themselves. These scripts never did, because they never had to: the key
+used to be baked into the source. Doing it here covers `label_chunks.py`,
+`eval_rag.py` and `eval_agent.py` at once.
+
+Order matters — the load has to happen before anything imports `src.config`,
+which is why it sits at module scope here rather than inside a function.
+"""
 
 import sys
 import textwrap
@@ -7,6 +24,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+try:
+    from dotenv import load_dotenv
+
+    for _env in (ROOT / ".env", ROOT / "evaluation" / ".env"):
+        if _env.exists():
+            load_dotenv(_env)
+except ImportError:  # python-dotenv missing — fall back to the real environment
+    pass
 
 DATASETS = Path(__file__).resolve().parent / "datasets"
 RESULTS = Path(__file__).resolve().parent / "results"

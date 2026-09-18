@@ -48,6 +48,20 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# Before importing src.config, not after. It resolves every setting at import
+# time, and since the hardcoded Qdrant key was removed those defaults are empty
+# strings — so loading .env late gives you a Config full of blanks that dies at
+# get_client() with "QDRANT_API_KEY is not set" while the key sits in .env one
+# directory up. Same two paths as ragflow.py, root wins.
+try:
+    from dotenv import load_dotenv
+
+    for _env in (PROJECT_ROOT / ".env", HERE / ".env"):
+        if _env.exists():
+            load_dotenv(_env)
+except ImportError:  # python-dotenv missing — fall back to the real environment
+    pass
+
 import mlflow  # noqa: E402
 
 from src.config import CONFIG  # noqa: E402

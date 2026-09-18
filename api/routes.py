@@ -54,6 +54,14 @@ def ready(response: Request) -> ReadyResponse:
     balancer, a Docker healthcheck and later a Kubernetes readiness probe all
     understand without configuration.
     """
+    # Retry whatever is currently down before answering. Warmup runs once, and
+    # under Compose the API starts alongside Postgres and usually wins the race
+    # — so without this the agent fails at boot and stays dead until someone
+    # restarts the container, even though the database came up seconds later.
+    # Rate limited and lock-guarded inside, and a no-op when everything is
+    # healthy, so polling this endpoint stays cheap.
+    STATE.recheck_failed()
+
     payload = ReadyResponse(
         ready=STATE.is_ready(),
         warming=STATE.warming,

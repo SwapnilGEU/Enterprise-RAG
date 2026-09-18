@@ -1,0 +1,48 @@
+# Enterprise RAG — Streamlit UI image
+#
+#   docker build -f Dockerfile.ui -t <you>/enterprise-rag-ui:0.1.0 .
+#
+# Three dependencies and one directory. The UI talks to the API over HTTP and
+# imports nothing from src/, so none of qdrant-client, langchain, langgraph or
+# psycopg2 appears here — and it needs no credentials at all, only the address
+# of the API.
+
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY ui/requirements-ui.txt ./
+RUN pip install -r requirements-ui.txt
+
+COPY ui/ ./ui/
+
+RUN useradd --create-home --uid 10001 appuser \
+ && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8501
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 \
+  CMD curl -fsS http://localhost:8501/_stcore/health || exit 1
+
+# --server.address=0.0.0.0 is required: Streamlit binds to localhost by
+# default, which inside a container means the container's own loopback, so the
+# published port would connect to nothing.
+#
+# --server.headless=true stops it trying to open a browser and to print the
+# "email address?" onboarding prompt on first run, which in a container is an
+# interactive prompt nobody can answer.
+CMD ["streamlit", "run", "ui/app.py", \
+     "--server.address=0.0.0.0", \
+     "--server.port=8501", \
+     "--server.headless=true", \
+     "--browser.gatherUsageStats=false"]

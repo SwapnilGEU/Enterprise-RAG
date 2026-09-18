@@ -1,0 +1,33 @@
+# Serving dependencies only — what the API image installs.
+#
+# This is requirements.txt minus the index-time block, and the difference is
+# large: pymupdf, python-docx, openpyxl, numpy, pandas and sentence-transformers
+# (which drags in torch, ~2GB) are all absent. Nothing in the query path imports
+# extraction.py, chunking.py, markdown.py or sections.py, so none of it is
+# reachable at serve time — verified from the import graph, and enforced by the
+# "only import downward" rule in src/.
+#
+# There is also no local embedding model here on purpose: Qdrant Cloud computes
+# dense, sparse and ColBERT vectors server-side (cloud_inference=True), so
+# serving needs no fastembed and no GPU.
+#
+# Keep this in sync with the SERVE / API / AGENT blocks of requirements.txt.
+
+# ---- retrieval + generation ----
+qdrant-client>=1.12
+langchain-core>=0.3
+langchain-ollama>=0.2
+requests>=2.31
+
+# ---- API ----
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+python-dotenv>=1.0
+
+# ---- agent (drop these three lines for an API_ENABLE_AGENT=false image) ----
+langchain>=0.3
+langchain-community>=0.3
+langgraph>=0.2
+psycopg2-binary>=2.9
+SQLAlchemy>=2.0

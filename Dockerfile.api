@@ -1,0 +1,62 @@
+# Enterprise RAG — API image
+#
+#   docker build -f Dockerfile.api -t <you>/enterprise-rag-api:0.1.0 .
+#
+# Contains code and dependencies only. No credentials: QDRANT_API_KEY and
+# friends arrive as environment variables at run time (see docker-compose.yml).
+# That is deliberate and it is what makes this image safe to push to a public
+# registry — a file baked into a layer is extractable with `docker history` or
+# by unpacking the layer, and deleting it in a later RUN does not remove it
+# from the earlier one.
+
+FROM python:3.11-slim AS base
+
+# PYTHONUNBUFFERED is not optional here: without it Python block-buffers stdout
+# when it is a pipe rather than a terminal, so JSON logs sit in a buffer and
+# `docker logs` shows nothing until the buffer fills or the process exits —
+# which looks exactly like a hung container.
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+# curl is for the HEALTHCHECK below. Removing the apt lists in the same layer
+# keeps them out of the image — a separate RUN would leave them in the layer
+# underneath.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/*
+
+# Dependencies before source, because Docker caches layers in order: this way
+# editing a Python file re-runs only the COPY below, not the whole install.
+COPY requirements-serve.txt ./
+RUN pip install -r requirements-serve.txt
+
+# Only what serving needs. The ingestion modules live in src/ too, but their
+# dependencies are not installed above, so importing one would fail loudly
+# rather than silently pulling a 2GB torch install into this image.
+COPY src/ ./src/
+COPY api/ ./api/
+
+# Run as a non-root user. If this ever gets an exploited dependency, the blast
+# radius is a container process that cannot write to its own code.
+RUN useradd --create-home --uid 10001 appuser \
+ && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+
+# /health, not /ready: this asks "is the process alive", which is what a
+# restart policy should act on. /ready can legitimately be 503 for minutes
+# while Ollama loads a model, and restarting the container would not help —
+# it would just start the wait again.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS http://localhost:8000/health || exit 1
+
+# One worker. Each would be a separate process with its own Ollama client, its
+# own Qdrant client and its own compiled agent, all competing for the same 6GB
+# card — more workers make generation slower, not faster. Raise it only once
+# the generator is hosted elsewhere.
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

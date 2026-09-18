@@ -1,0 +1,64 @@
+# What must NOT reach a build context — and therefore must not reach a public
+# image on Docker Hub.
+#
+# The first two entries are the important ones. Everything else is size.
+
+# ---- secrets ----
+# Credentials arrive as environment variables at run time (docker-compose.yml
+# env_file). A .env copied into a layer is permanent: `docker history` and a
+# layer extract will pull it back out, and deleting it in a later RUN does not
+# remove it from the layer underneath. Anyone who can pull the image gets it.
+.env
+.env.*
+!.env.example
+**/.env
+mlflow/.env
+*.pem
+*.key
+
+# ---- your documents ----
+# data/raw holds the source PDFs and DOCXs. They are already chunked and
+# uploaded to Qdrant, so the serving image has no use for them — and shipping
+# someone's corpus inside a public image is its own kind of leak.
+data/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# ---- evaluation and experiment output ----
+mlflow.db
+mlflow/mlflow.db
+mlflow/mlartifacts/
+mlruns/
+evaluation/results/
+.deepeval/
+
+# ---- notebooks: large, and full of outputs ----
+Notebooks/
+*.ipynb
+.ipynb_checkpoints/
+
+# ---- local environments ----
+venv/
+.venv/
+env/
+*.egg-info/
+__pycache__/
+*.py[cod]
+
+# ---- caches and tooling ----
+.git/
+.gitignore
+.github/
+.pytest_cache/
+.vscode/
+.idea/
+logs/
+outputs/
+tests/
+conftest.py
+pytest.ini
+
+# ---- docs ----
+docs/
+*.md
+!README.md

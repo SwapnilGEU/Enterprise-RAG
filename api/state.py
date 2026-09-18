@@ -20,6 +20,7 @@ is now being run by a server.
    timeout get a 503 they can act on rather than a queue nobody can see.
 """
 
+import os
 import threading
 import time
 
@@ -29,6 +30,11 @@ from api.logging_config import request_id_var  # noqa: F401  (re-exported for co
 import logging
 
 logger = logging.getLogger("api.state")
+
+# Minimum gap between /ready-triggered retries of a failed component. Long
+# enough that a healthcheck polling every 5s does not rebuild the agent on
+# every poll; short enough that a dependency coming up is noticed in seconds.
+RECHECK_INTERVAL = float(os.environ.get("API_RECHECK_INTERVAL", "10"))
 
 
 class ComponentStatus:
@@ -75,6 +81,8 @@ class ServiceState:
         self._llm_lock = threading.Lock()
         self._agent_lock = threading.Lock()
         self._generation = threading.BoundedSemaphore(settings.MAX_CONCURRENT_GENERATIONS)
+        self._recheck_lock = threading.Lock()
+        self._last_recheck = 0.0
 
         self.missing_settings: list[str] = []
 
@@ -151,16 +159,42 @@ class ServiceState:
         started = time.time()
         logger.info("warmup starting")
 
+        self._refresh_missing_settings()
+        self._check_qdrant()
+        self._check_ollama()
+        if settings.ENABLE_AGENT:
+            self._check_agent()
+
+        self.warming = False
+        self.warmed_at = time.time()
+        logger.info(
+            "warmup finished", extra={"seconds": round(self.warmed_at - started, 2),
+                                      "ready": self.is_ready()}
+        )
+
+    def warm_in_background(self) -> None:
+        threading.Thread(target=self.warm, name="warmup", daemon=True).start()
+
+    # --- individual checks -------------------------------------------------
+    # Separate so `recheck_failed` can re-run exactly the ones that are down,
+    # rather than redoing a warmup that would re-pay for everything working.
+
+    def _refresh_missing_settings(self) -> None:
         from src.config import CONFIG
 
         self.missing_settings = CONFIG.missing_settings(need_postgres=settings.ENABLE_AGENT)
         if self.missing_settings:
             logger.error("missing required settings: %s", ", ".join(self.missing_settings))
 
-        # Qdrant — construct the client and actually ask it something. Merely
-        # constructing proves nothing: QdrantClient does no network I/O until
-        # the first call, so a wrong URL or key looks healthy until a user hits
-        # it. Reading the collection is the cheapest real check.
+    def _check_qdrant(self) -> None:
+        """Construct the client and actually ask it something.
+
+        Constructing proves nothing: QdrantClient does no network I/O until the
+        first call, so a wrong URL or key looks perfectly healthy until a user
+        hits it. Reading the collection is the cheapest real check.
+        """
+        from src.config import CONFIG
+
         try:
             from src.vector_store import get_client
 
@@ -173,38 +207,92 @@ class ServiceState:
         except Exception as exc:  # noqa: BLE001
             self.qdrant.fail(exc)
 
-        # Ollama — construct the client and make one tiny generation, for the
-        # same reason: ChatOllama constructs without contacting anything, and
-        # the model load happens on first use. Paying that here is the entire
-        # point of warming.
+    def _check_ollama(self) -> None:
+        """One tiny generation, for the same reason: ChatOllama constructs
+        without contacting anything, and the model load happens on first use.
+        Paying that here is the entire point of warming."""
+        from src.config import CONFIG
+
         try:
-            llm = self.get_llm()
-            llm.invoke("ok")
+            self.get_llm().invoke("ok")
             self.ollama.ok()
             logger.info("ollama ready", extra={"model": CONFIG.ollama_model})
         except Exception as exc:  # noqa: BLE001
             self.ollama.fail(exc)
 
+    def _check_agent(self) -> None:
+        try:
+            from src.history import ensure_schema
+
+            ensure_schema()
+            self.get_agent()
+            self.agent.ok()
+            logger.info("agent ready")
+        except Exception as exc:  # noqa: BLE001
+            self.agent.fail(exc)
+
+    # --- self-healing ------------------------------------------------------
+
+    def recheck_failed(self) -> bool:
+        """Retry the components that are currently down. Returns True if it ran.
+
+        Warmup happens once, at startup, which was fine when every dependency
+        was already up before uvicorn started. Under Compose it is not: the API
+        container starts alongside Postgres and will usually win the race, so
+        the agent fails once and — without this — stays dead until someone
+        restarts the container, even though the database came up two seconds
+        later.
+
+        Only failed components are retried, so a healthy instance pays nothing:
+        no repeated Qdrant round trip, and no repeated Ollama generation, which
+        would otherwise make every /ready poll load the model.
+
+        Rate limited (`RECHECK_INTERVAL`) because /ready gets polled — by a
+        Docker healthcheck every few seconds, later by Kubernetes. Without the
+        cooldown a down Postgres would mean rebuilding the agent on every poll.
+        The lock stops concurrent polls piling up behind the same slow retry.
+        """
+        if self.warming:
+            return False
+
+        failed = [c for c in self._all_components() if not c.ready]
+        if not failed and not self.missing_settings:
+            return False
+
+        now = time.time()
+        if now - self._last_recheck < RECHECK_INTERVAL:
+            return False
+
+        if not self._recheck_lock.acquire(blocking=False):
+            return False  # another poll is already retrying
+
+        try:
+            self._last_recheck = time.time()
+            logger.info("rechecking failed components",
+                        extra={"components": [c.name for c in failed]})
+
+            # Settings can change between restarts of a *dependency*, not of
+            # this process — but re-reading costs nothing and keeps the
+            # reported list honest if the env was fixed and the container
+            # restarted only partially.
+            self._refresh_missing_settings()
+
+            for component in failed:
+                if component is self.qdrant:
+                    self._check_qdrant()
+                elif component is self.ollama:
+                    self._check_ollama()
+                elif component is self.agent and settings.ENABLE_AGENT:
+                    self._check_agent()
+            return True
+        finally:
+            self._recheck_lock.release()
+
+    def _all_components(self) -> list[ComponentStatus]:
+        components = [self.qdrant, self.ollama]
         if settings.ENABLE_AGENT:
-            try:
-                from src.history import ensure_schema
-
-                ensure_schema()
-                self.get_agent()
-                self.agent.ok()
-                logger.info("agent ready")
-            except Exception as exc:  # noqa: BLE001
-                self.agent.fail(exc)
-
-        self.warming = False
-        self.warmed_at = time.time()
-        logger.info(
-            "warmup finished", extra={"seconds": round(self.warmed_at - started, 2),
-                                      "ready": self.is_ready()}
-        )
-
-    def warm_in_background(self) -> None:
-        threading.Thread(target=self.warm, name="warmup", daemon=True).start()
+            components.append(self.agent)
+        return components
 
 
 STATE = ServiceState()
