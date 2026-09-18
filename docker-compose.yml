@@ -10,6 +10,14 @@ services:
     ports:
       - "8000:8000"
     env_file: .env
+    # env_file wins over the Dockerfile's ENV, and .env says `localhost` —
+    # which inside a container means the container itself. `environment`
+    # wins over env_file, so these put the host back.
+    environment:
+      PG_HOST: host.docker.internal
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   ui:
     build:
