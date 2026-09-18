@@ -1,89 +1,20 @@
-# Enterprise RAG — local stack.
-#
-#   docker compose build
-#   docker compose up -d
-#   docker compose logs -f api
-#
-# Needs a .env next to this file (copy .env.example). Nothing secret is baked
-# into the images; env_file reads .env from THIS machine at container start.
-#
-# Not in here, on purpose:
-#   Qdrant — hosted, nothing to run.
-#   Ollama — stays on your host. GPU passthrough into Docker on Windows is a
-#            fight, the model is already pulled, and a containerised Ollama on
-#            CPU would be unusably slow. Containers reach it via
-#            host.docker.internal.
-
-name: enterprise-rag
+# Optional. The two `docker run` commands do the same thing.
+#   docker compose up --build
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: ${PG_DBNAME:-RAG}
-      POSTGRES_USER: ${PG_USER:-postgres}
-      POSTGRES_PASSWORD: ${PG_PASSWORD:?PG_PASSWORD must be set in .env}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      # Exposed so you can still reach it with psql from the host. Drop this
-      # line if you would rather it were only reachable from the compose
-      # network.
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres} -d ${PG_DBNAME:-RAG}"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-    restart: unless-stopped
-
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
-    image: ${DOCKERHUB_USER:-local}/enterprise-rag-api:${TAG:-0.1.0}
-    env_file: .env          # QDRANT_URL, QDRANT_API_KEY, PG_PASSWORD, ...
-    environment:
-      # These three override whatever .env says, because .env holds the values
-      # that are right when you run uvicorn directly on the host, and inside
-      # the compose network they are different.
-      PG_HOST: postgres                                  # service name, not localhost
-      OLLAMA_BASE_URL: http://host.docker.internal:11434 # Ollama is on the host
-      LOG_FORMAT: json
-      API_ENABLE_AGENT: "true"
-      API_MAX_CONCURRENT_GENERATIONS: "2"
+    image: rag-api
     ports:
       - "8000:8000"
-    extra_hosts:
-      # Docker Desktop (Windows/macOS) provides host.docker.internal already;
-      # on Linux it does not exist, and this line creates it. Harmless where it
-      # is already defined.
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+    env_file: .env
 
   ui:
     build:
       context: .
       dockerfile: Dockerfile.ui
-    image: ${DOCKERHUB_USER:-local}/enterprise-rag-ui:${TAG:-0.1.0}
-    # No env_file. The UI has no business holding the Qdrant key, so it is
-    # given exactly one setting — where the API lives — rather than the whole
-    # environment. If it is ever compromised there is nothing in it to steal.
-    environment:
-      API_BASE_URL: http://api:8000      # service name on the compose network
-      UI_REQUEST_TIMEOUT: "300"
+    image: rag-ui
     ports:
       - "8501:8501"
-    depends_on:
-      # `service_started`, not `service_healthy`: the UI is useful before the
-      # API finishes warming, because its sidebar shows /ready and tells you
-      # what is still coming up. Waiting would hide exactly that.
-      api:
-        condition: service_started
-    restart: unless-stopped
-
-volumes:
-  pgdata:
