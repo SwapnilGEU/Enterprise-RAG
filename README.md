@@ -204,4 +204,3 @@ cheaper to fix there than to discover it in an answer.
 - **`rag_tool` returns the answer plus citations, not the whole result dict.**
   In an agent loop every tool return is permanent context; returning the
   retrieved chunks would carry thousands of tokens through every later turn.
-hey
