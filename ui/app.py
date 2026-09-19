@@ -181,6 +181,7 @@ def init_state() -> None:
     defaults = {
         "chat": [],            # completed rows
         "queue": [],           # pending questions
+        "in_flight": None,     # the question being answered right now
         "running": False,      # batch in progress
         "cancel": False,       # stop after the current item
         "confirm_clear": False,
@@ -328,6 +329,14 @@ def main() -> None:
     # Only shown when something is actually waiting. With one-at-a-time sending
     # a visible empty queue is just furniture.
     pending = st.session_state.queue
+
+    # Busy means "a question is already on its way to an answer" — either one is
+    # mid-request (in_flight, set by the runner below) or one is queued and this
+    # very run is about to start it. Both must count: the runner pops from the
+    # queue AFTER the widgets are drawn, so gating on in_flight alone would
+    # leave the box enabled for exactly the run that does the work.
+    busy = bool(pending) or st.session_state.in_flight is not None
+
     if pending:
         waiting = ", ".join(f"“{q[:40]}”" for q in pending[:3])
         more = f" (+{len(pending) - 3} more)" if len(pending) > 3 else ""
@@ -343,12 +352,19 @@ def main() -> None:
     with st.bottom:
         ask_col, stop_col = st.columns([0.9, 0.1], vertical_alignment="bottom")
 
-        # Never disabled. Streamlit holds a submission made while the script is
-        # busy and delivers it on the next run, where it lands on the queue —
-        # exactly the "typed a second question by mistake" case: it waits its
-        # turn instead of being dropped or interrupting the one in flight.
+        # Disabled while a question is in flight. The widgets are drawn before
+        # the queue runner blocks, so this renders disabled straight away and
+        # stays that way for the whole wait — which is the frame the user looks
+        # at for the next 15-20 seconds.
+        #
+        # The queue below is kept even so. Streamlit can still deliver a
+        # submission made in the instant before the disable reaches the browser,
+        # and when it does, the queue is what stops it being dropped.
         with ask_col:
-            question = st.chat_input("Ask a question…")
+            question = st.chat_input(
+                "Answering — one moment…" if busy else "Ask a question…",
+                disabled=busy,
+            )
 
         with stop_col:
             if st.button(
@@ -377,16 +393,32 @@ def main() -> None:
             f"Answering: {current}" + (f"  ·  {remaining} waiting" if remaining else "")
         )
 
+        # Recorded in session state, not just the local `current`, for the whole
+        # duration of the blocking call. Between the pop above and the append
+        # below the question used to exist ONLY in that local: off the queue,
+        # not yet in the chat. Anything that restarted the script in that window
+        # — a widget interaction requesting a rerun, a browser refresh, an
+        # exception in build_row — took the question with it and the user saw
+        # their question silently ignored. Now it survives, and `busy` above can
+        # see it.
+        st.session_state.in_flight = current
+
         started = time.perf_counter()
-        payload, status, error = call_api(
-            base_url, endpoint, current,
-            top_k=None, include_context=include_context,
-            session_id=st.session_state.session_id, timeout=REQUEST_TIMEOUT,
-        )
-        elapsed = (time.perf_counter() - started) * 1000
-        st.session_state.chat.append(
-            build_row(endpoint, current, payload, status, error, elapsed)
-        )
+        try:
+            payload, status, error = call_api(
+                base_url, endpoint, current,
+                top_k=None, include_context=include_context,
+                session_id=st.session_state.session_id, timeout=REQUEST_TIMEOUT,
+            )
+            elapsed = (time.perf_counter() - started) * 1000
+            st.session_state.chat.append(
+                build_row(endpoint, current, payload, status, error, elapsed)
+            )
+        finally:
+            # finally, so a raise on the way to the chat row still releases the
+            # input. Without it one unexpected exception locks the box for the
+            # rest of the session with no way back but a refresh.
+            st.session_state.in_flight = None
 
         # Stop clears the queue, so the loop ends naturally after this one.
         st.session_state.cancel = False
