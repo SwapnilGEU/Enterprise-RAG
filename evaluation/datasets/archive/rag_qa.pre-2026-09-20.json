@@ -1,0 +1,12 @@
+[
+  {"query": "What is Retrieval-Augmented Generation (RAG)?", "reference_answer": "RAG supplements a language model with external knowledge by retrieving relevant documents from a database and providing them as context for generation."},
+  {"query": "Why is chunking necessary in a RAG pipeline?", "reference_answer": "Chunking breaks large documents into smaller, semantically meaningful pieces so they fit within the embedding model's token limits and the LLM's context window."},
+  {"query": "What is the difference between dense and sparse retrieval?", "reference_answer": "Dense retrieval relies on semantic similarity using vector embeddings, while sparse retrieval relies on exact keyword matching, such as BM25."},
+  {"query": "What role does a vector database play in RAG?", "reference_answer": "A vector database stores document embeddings and performs fast similarity searches to find the most relevant chunks for a given user query."},
+  {"query": "How does a reranker improve retrieval quality?", "reference_answer": "A reranker takes a preliminary list of retrieved documents and scores them with a more expensive model to improve the final ranking accuracy."},
+  {"query": "What is the context window of a Large Language Model?", "reference_answer": "The maximum number of tokens an LLM can process in a single request, including both the input prompt and the generated output."},
+  {"query": "Why do LLMs hallucinate?", "reference_answer": "They are probabilistic models trained to predict the next token, so they may generate plausible-sounding but factually incorrect information when they lack specific knowledge."},
+  {"query": "What is semantic search?", "reference_answer": "Search that understands the intent and contextual meaning behind a query rather than relying strictly on exact keyword matches."},
+  {"query": "What is the purpose of embedding models?", "reference_answer": "They convert text into high-dimensional numeric vectors capturing semantic meaning, allowing mathematical comparison of similarity."},
+  {"query": "How does RAG prevent LLM hallucinations?", "reference_answer": "It grounds the LLM in factual retrieved data and instructs the model to answer only from the provided context."}
+]

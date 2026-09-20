@@ -24,7 +24,7 @@ import os
 import threading
 import time
 
-from api import settings
+from api import metrics, settings
 from api.logging_config import request_id_var  # noqa: F401  (re-exported for convenience)
 
 import logging
@@ -131,14 +131,28 @@ class ServiceState:
 
     # --- bounding the generator -------------------------------------------
 
-    def acquire_generation_slot(self, timeout: float | None = None) -> bool:
-        return self._generation.acquire(
+    def acquire_generation_slot(self, endpoint: str = "unknown",
+                                timeout: float | None = None) -> bool:
+        """Wait for a slot, and record how long that took.
+
+        The wait is measured here rather than in the handler because this is
+        the only place that knows the difference between "waited and got one"
+        and "waited and gave up" — and the second is a user-visible 503 that an
+        HTTP error-rate panel cannot tell apart from a backend failure.
+        """
+        started = time.perf_counter()
+        acquired = self._generation.acquire(
             timeout=settings.GENERATION_QUEUE_TIMEOUT if timeout is None else timeout
         )
+        metrics.queue_wait(endpoint, time.perf_counter() - started, acquired)
+        if acquired:
+            metrics.slot_held(endpoint, 1)
+        return acquired
 
-    def release_generation_slot(self) -> None:
+    def release_generation_slot(self, endpoint: str = "unknown") -> None:
         try:
             self._generation.release()
+            metrics.slot_held(endpoint, -1)
         except ValueError:
             # BoundedSemaphore raises on over-release. That means a bug in the
             # acquire/release pairing, but it must not take down a request that

@@ -16,8 +16,42 @@ services:
     environment:
       PG_HOST: host.docker.internal
       OLLAMA_BASE_URL: http://host.docker.internal:11434
+      # Traces, metrics and logs — one variable for all three. NOT the
+      # _TRACES_ form: the metric and log exporters do not read it and would
+      # fall back to localhost:4317, which in here is this container.
+      # gRPC, so 4317; 4318 is HTTP and would need OTEL_EXPORTER_OTLP_PROTOCOL.
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4317
+      OTEL_SERVICE_NAME: enterprise-rag-api
+      OTEL_METRIC_EXPORT_INTERVAL: "15000"
+      # Belt and braces: api/observability.py also calls mlflow.tracing.disable().
+      # Set HERE and not in .env, because mlflow/*.py load the repo-root .env and
+      # would disable tracing during eval runs, where DeepEval needs it.
+      MLFLOW_TRACING_ENABLED: "false"
+    depends_on:
+      - lgtm
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  # Prometheus + Tempo + Loki + Pyroscope + a Collector + Grafana, pre-wired as
+  # data sources, in one image. Deliberately not five hand-assembled services:
+  # at this size (one box, one service) the image already embodies the choices
+  # that matter — Tempo and Loki monolithic, filesystem storage, no Mimir.
+  #
+  # Grafana's own docs are explicit that this image is for development, demo and
+  # testing, not production; the sub-5s startup was traded against scalability.
+  # For production these become separate Tempo/Loki/Prometheus deployments.
+  lgtm:
+    image: grafana/otel-lgtm:latest   # pin a tag once a working one is known
+    container_name: lgtm
+    ports:
+      - "3000:3000"   # Grafana UI — admin / admin
+      - "4317:4317"   # OTLP gRPC  — what the api exports to
+      - "4318:4318"   # OTLP HTTP
+    volumes:
+      # Without this every trace is lost on restart: the image keeps its data
+      # under /data and nothing outside the container survives `docker compose
+      # down`. Cheap to add now, annoying to discover later.
+      - lgtm-data:/data
 
   ui:
     build:
@@ -26,3 +60,6 @@ services:
     image: rag-ui
     ports:
       - "8501:8501"
+
+volumes:
+  lgtm-data:

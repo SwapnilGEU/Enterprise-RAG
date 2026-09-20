@@ -41,8 +41,21 @@ from api import settings  # noqa: E402
 from api.logging_config import configure_logging, request_id_var  # noqa: E402
 from api.routes import router  # noqa: E402
 from api.state import STATE  # noqa: E402
+from api.observability import (  # noqa: E402
+    configure_log_export,
+    configure_metrics,
+    configure_tracing,
+    instrument_app,
+)
 
 configure_logging()
+# Before the app exists, so the instrumentors below attach to the provider
+# this installs. A no-op unless an OTLP endpoint is configured.
+configure_tracing()
+configure_metrics()
+# After configure_logging(), which sets handlers and propagate=False on
+# uvicorn/rag — this appends to those same loggers rather than only to root.
+configure_log_export()
 logger = logging.getLogger("api")
 
 
@@ -76,6 +89,10 @@ app = FastAPI(
     ),
     lifespan=lifespan,
 )
+
+# Server spans for every request bar /health, plus client spans for the
+# Qdrant and Ollama calls. Must follow configure_tracing().
+instrument_app(app)
 
 if settings.CORS_ORIGINS:
     app.add_middleware(

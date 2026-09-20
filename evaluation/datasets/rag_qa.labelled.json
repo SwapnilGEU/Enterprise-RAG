@@ -1,52 +1,78 @@
 [
   {
-    "query": "What is Retrieval-Augmented Generation (RAG)?",
-    "reference_answer": "RAG supplements a language model with external knowledge by retrieving relevant documents from a database and providing them as context for generation.",
-    "relevant_chunk_ids": []
+    "query": "What is multi-head attention, and why is it used instead of a single attention function?",
+    "reference_answer": "Multi-head attention linearly projects the queries, keys and values h times with different learned linear projections into lower-dimensional spaces, performs the attention function on each projection in parallel, then concatenates the results and projects them once more. It is used because it lets the model jointly attend to information from different representation subspaces at different positions, which a single attention head prevents because averaging inhibits it. The paper employs h = 8 parallel heads.",
+    "relevant_chunk_ids": [
+      "Attention_Is_All_You_Need.docx::unit_8::chunk_0",
+      "Attention_Is_All_You_Need.docx::unit_6::chunk_0"
+    ]
   },
   {
-    "query": "Why is chunking necessary in a RAG pipeline?",
-    "reference_answer": "Chunking breaks large documents into smaller, semantically meaningful pieces so they fit within the embedding model's token limits and the LLM's context window.",
-    "relevant_chunk_ids": []
+    "query": "If a model contains no recurrence and no convolution, how can it make use of the order of tokens in a sequence?",
+    "reference_answer": "Positional encodings are added to the input embeddings at the bottoms of the encoder and decoder stacks, injecting information about the relative or absolute position of each token. They have the same dimension as the embeddings so the two can be summed. The paper uses fixed sine and cosine functions of different frequencies, where each dimension corresponds to a sinusoid and the wavelengths form a geometric progression from 2*pi to 10000*2*pi.",
+    "relevant_chunk_ids": [
+      "Attention_Is_All_You_Need.docx::unit_12::chunk_0"
+    ]
   },
   {
-    "query": "What is the difference between dense and sparse retrieval?",
-    "reference_answer": "Dense retrieval relies on semantic similarity using vector embeddings, while sparse retrieval relies on exact keyword matching, such as BM25.",
-    "relevant_chunk_ids": []
+    "query": "How do RAG-Sequence and RAG-Token differ in the way they use retrieved documents?",
+    "reference_answer": "RAG-Sequence uses the same retrieved document to generate the complete output sequence, treating it as a single latent variable that is marginalised via a top-K approximation. RAG-Token draws a different latent document for each target token and marginalises per token, which lets the generator take content from several documents within one answer. For sequence classification, where the target is a sequence of length one, the two are equivalent. They also require different approximations at decoding time.",
+    "relevant_chunk_ids": [
+      "Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx::unit_28::chunk_0",
+      "Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx::unit_32::chunk_0"
+    ]
   },
   {
-    "query": "What role does a vector database play in RAG?",
-    "reference_answer": "A vector database stores document embeddings and performs fast similarity searches to find the most relevant chunks for a given user query.",
-    "relevant_chunk_ids": []
+    "query": "What architecture does the RAG paper use to find relevant passages, and how is that search made tractable over a large index?",
+    "reference_answer": "It uses a bi-encoder: a BERT-base document encoder produces a dense representation of each document, and a separate BERT-base query encoder embeds the query. Selecting the top-k documents is a Maximum Inner Product Search problem, which can be solved approximately in sub-linear time. The retriever is initialised from a pre-trained DPR bi-encoder trained to retrieve documents answering TriviaQA and Natural Questions, and the resulting document index is referred to as the non-parametric memory.",
+    "relevant_chunk_ids": [
+      "Retrieval-Augmented_Generation_for_Knowledge-Intensive_NLP_Tasks.docx::unit_29::chunk_0"
+    ]
   },
   {
-    "query": "How does a reranker improve retrieval quality?",
-    "reference_answer": "A reranker takes a preliminary list of retrieved documents and scores them with a more expensive model to improve the final ranking accuracy.",
-    "relevant_chunk_ids": []
+    "query": "What are the two phases of transformer inference, and what is kept between them?",
+    "reference_answer": "Inference divides into prefilling and decoding. Prefilling computes the KV cache for the input sequence, preparing and storing the key-value pairs for each input token before generation begins. Decoding then proceeds autoregressively one token at a time: the KV cache is updated at each position, the attention operation is performed against the cached past representations, and the process repeats for the next position.",
+    "relevant_chunk_ids": [
+      "Foundation-LLMs.pdf::unit_174::chunk_9",
+      "Foundation-LLMs.pdf::unit_174::chunk_10"
+    ]
   },
   {
-    "query": "What is the context window of a Large Language Model?",
-    "reference_answer": "The maximum number of tokens an LLM can process in a single request, including both the input prompt and the generated output.",
-    "relevant_chunk_ids": []
+    "query": "What is chain-of-thought prompting?",
+    "reference_answer": "Chain of thought (CoT) is a prompting method that gets an LLM to generate step-by-step reasoning for complex problems rather than producing a conclusion directly, approaching the task in a more human-like way. It works either by instructing the model to generate reasoning steps, or by providing demonstrations of detailed reasoning processes in the prompt.",
+    "relevant_chunk_ids": [
+      "Foundation-LLMs.pdf::unit_120::chunk_0",
+      "Foundation-LLMs.pdf::unit_120::chunk_3"
+    ]
   },
   {
-    "query": "Why do LLMs hallucinate?",
-    "reference_answer": "They are probabilistic models trained to predict the next token, so they may generate plausible-sounding but factually incorrect information when they lack specific knowledge.",
-    "relevant_chunk_ids": []
+    "query": "What practical cost and engineering effort does instruction fine-tuning involve?",
+    "reference_answer": "It requires substantial engineering work: experimenting with different settings of the learning rate, batch size, number of fine-tuning steps and similar hyperparameters, which typically means many fine-tuning runs and evaluations. The cost and experimental effort are critical and should not be overlooked, although they are much lower than those of the pre-training phase.",
+    "relevant_chunk_ids": [
+      "Foundation-LLMs.pdf::unit_85::chunk_4"
+    ]
   },
   {
-    "query": "What is semantic search?",
-    "reference_answer": "Search that understands the intent and contextual meaning behind a query rather than relying strictly on exact keyword matches.",
-    "relevant_chunk_ids": []
+    "query": "How is left-to-right language modelling related to masked language modelling?",
+    "reference_answer": "Causal (left-to-right) language modelling is a special case of masked language modelling: at each position the right-context tokens are masked and the token is predicted from its left-context only. Masked language modelling instead uses all the unmasked tokens, producing a bidirectional model that predicts from both left and right context. Formally, tokens at selected positions are replaced with a [MASK] symbol and the model is trained to reconstruct the original sequence, which is an autoencoding-like process.",
+    "relevant_chunk_ids": [
+      "Foundation-LLMs.pdf::unit_59::chunk_2",
+      "Foundation-LLMs.pdf::unit_59::chunk_1"
+    ]
   },
   {
-    "query": "What is the purpose of embedding models?",
-    "reference_answer": "They convert text into high-dimensional numeric vectors capturing semantic meaning, allowing mathematical comparison of similarity.",
-    "relevant_chunk_ids": []
+    "query": "Is Hirschsprung disease caused by a single gene, or by several genetic factors?",
+    "reference_answer": "Both patterns occur. Coding sequence mutations in RET, GDNF, EDNRB, EDN3 and SOX10 are involved in the development of the disease, and the majority of these genes were shown to relate to Mendelian syndromic forms. Sporadic non-syndromic Hirschsprung disease, by contrast, shows non-Mendelian inheritance that proved to be complex, with involvement of multiple loci demonstrated in a multiplicative model.",
+    "relevant_chunk_ids": [
+      "rag.xlsx::row_0"
+    ]
   },
   {
-    "query": "How does RAG prevent LLM hallucinations?",
-    "reference_answer": "It grounds the LLM in factual retrieved data and instructs the model to answer only from the provided context.",
-    "relevant_chunk_ids": []
+    "query": "Which signalling molecules bind to the EGF receptor?",
+    "reference_answer": "Seven ligands are known to interact with EGFR: epidermal growth factor (EGF), betacellulin (BTC), epiregulin (EPR), heparin-binding EGF (HB-EGF), transforming growth factor-alpha (TGF-alpha), amphiregulin (AREG) and epigen (EPG).",
+    "relevant_chunk_ids": [
+      "rag.xlsx::row_1",
+      "rag.xlsx::row_4648"
+    ]
   }
 ]

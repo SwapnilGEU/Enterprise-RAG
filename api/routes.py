@@ -17,7 +17,7 @@ import time
 
 from fastapi import APIRouter, HTTPException, Request
 
-from api import settings
+from api import metrics, settings
 from api.schemas import (
     AgentRequest,
     AgentResponse,
@@ -93,7 +93,7 @@ def query(body: QueryRequest, request: Request) -> QueryResponse:
             detail=_unready_detail(["qdrant", "ollama"]),
         )
 
-    if not STATE.acquire_generation_slot():
+    if not STATE.acquire_generation_slot("/query"):
         # An honest refusal beats an invisible queue: the caller can back off,
         # and the number of these is the signal that the generator is the
         # bottleneck rather than the service.
@@ -113,10 +113,20 @@ def query(body: QueryRequest, request: Request) -> QueryResponse:
         logger.exception("query failed", extra={"question": body.question[:120]})
         raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
     finally:
-        STATE.release_generation_slot()
+        STATE.release_generation_slot("/query")
 
     latency_ms = round((time.perf_counter() - started) * 1000, 1)
     sources = _to_sources(result.get("sources") or [], include_text=body.include_context)
+
+    # A degraded answer is an HTTP 200 and zero sources is a fast HTTP 200, so
+    # neither is visible in an error-rate panel. This is where they become
+    # countable.
+    metrics.answer(
+        "/query",
+        degraded=bool(result.get("degraded")),
+        failure_stage=result.get("failure_stage"),
+        n_sources=len(sources),
+    )
 
     logger.info(
         "query answered",
@@ -165,7 +175,7 @@ def agent(body: AgentRequest, request: Request) -> AgentResponse:
             ),
         )
 
-    if not STATE.acquire_generation_slot():
+    if not STATE.acquire_generation_slot("/agent"):
         raise HTTPException(
             status_code=503,
             detail=f"No generation slot within {settings.GENERATION_QUEUE_TIMEOUT}s. Retry shortly.",
@@ -187,7 +197,7 @@ def agent(body: AgentRequest, request: Request) -> AgentResponse:
         logger.exception("agent failed", extra={"question": body.question[:120]})
         raise HTTPException(status_code=502, detail=f"{type(exc).__name__}: {exc}") from exc
     finally:
-        STATE.release_generation_slot()
+        STATE.release_generation_slot("/agent")
 
     latency_ms = round((time.perf_counter() - started) * 1000, 1)
 
@@ -215,6 +225,9 @@ def agent(body: AgentRequest, request: Request) -> AgentResponse:
         extra={"latency_ms": latency_ms, "tools_used": tools_used,
                "retrieval_prefetched": prefetched},
     )
+
+    metrics.answer("/agent", degraded=False)
+    metrics.tool_calls(tools_used, prefetched)
 
     return AgentResponse(
         answer=_message_text(state["messages"][-1].content),
