@@ -88,15 +88,25 @@ def query(body: QueryRequest, request: Request) -> QueryResponse:
     started = time.perf_counter()
 
     if not STATE.qdrant.ready or not STATE.ollama.ready:
-        raise HTTPException(
-            status_code=503,
-            detail=_unready_detail(["qdrant", "ollama"]),
-        )
+        # Logged, not merely returned: a 503 that exists only as a status code
+        # leaves its reason in a response body nobody kept.
+        detail = _unready_detail(["qdrant", "ollama"])
+        logger.warning("refused /query — dependency down: %s", detail,
+                       extra={"event": "refused", "reason": "dependency_down",
+                              "detail": detail})
+        raise HTTPException(status_code=503, detail=detail)
 
     if not STATE.acquire_generation_slot("/query"):
         # An honest refusal beats an invisible queue: the caller can back off,
         # and the number of these is the signal that the generator is the
         # bottleneck rather than the service.
+        logger.warning(
+            "refused /query — no generation slot within %ss",
+            settings.GENERATION_QUEUE_TIMEOUT,
+            extra={"event": "refused", "reason": "queue_timeout",
+                   "timeout_s": settings.GENERATION_QUEUE_TIMEOUT,
+                   "max_concurrent": settings.MAX_CONCURRENT_GENERATIONS},
+        )
         raise HTTPException(
             status_code=503,
             detail=(
@@ -128,12 +138,21 @@ def query(body: QueryRequest, request: Request) -> QueryResponse:
         n_sources=len(sources),
     )
 
+    top = sources[0].document if sources else None
     logger.info(
-        "query answered",
+        "answered /query in %sms from %d source(s)%s",
+        latency_ms, len(sources), " [DEGRADED]" if result.get("degraded") else "",
         extra={
+            "event": "query_answered",
             "latency_ms": latency_ms,
             "n_sources": len(sources),
             "degraded": bool(result.get("degraded")),
+            "failure_stage": result.get("failure_stage"),
+            "top_document": top,
+            # Truncated to the same bound the failure path already uses. This
+            # is what makes a Loki search useful: without it you can find that
+            # a request was slow but not what was asked.
+            "question": body.question[:120],
         },
     )
 
@@ -167,6 +186,10 @@ def agent(body: AgentRequest, request: Request) -> AgentResponse:
     started = time.perf_counter()
 
     if not STATE.agent.ready:
+        logger.warning("refused /agent — agent unavailable: %s",
+                       STATE.agent.error or "still warming",
+                       extra={"event": "refused", "reason": "agent_unavailable",
+                              "detail": STATE.agent.error})
         raise HTTPException(
             status_code=503,
             detail=(
@@ -176,6 +199,12 @@ def agent(body: AgentRequest, request: Request) -> AgentResponse:
         )
 
     if not STATE.acquire_generation_slot("/agent"):
+        logger.warning(
+            "refused /agent — no generation slot within %ss",
+            settings.GENERATION_QUEUE_TIMEOUT,
+            extra={"event": "refused", "reason": "queue_timeout",
+                   "timeout_s": settings.GENERATION_QUEUE_TIMEOUT},
+        )
         raise HTTPException(
             status_code=503,
             detail=f"No generation slot within {settings.GENERATION_QUEUE_TIMEOUT}s. Retry shortly.",
@@ -221,9 +250,18 @@ def agent(body: AgentRequest, request: Request) -> AgentResponse:
     prefetched = any(is_prefetch_call(c) for c in calls)
 
     logger.info(
-        "agent answered",
-        extra={"latency_ms": latency_ms, "tools_used": tools_used,
-               "retrieval_prefetched": prefetched},
+        "answered /agent in %sms — tools: %s%s",
+        latency_ms, ", ".join(tools_used) or "none",
+        " (kb pre-searched)" if prefetched else "",
+        extra={
+            "event": "agent_answered",
+            "latency_ms": latency_ms,
+            "tools_used": tools_used,
+            "n_tools": len(tools_used),
+            "retrieval_prefetched": prefetched,
+            "session_id": body.session_id,
+            "question": body.question[:120],
+        },
     )
 
     metrics.answer("/agent", degraded=False)

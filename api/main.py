@@ -48,6 +48,11 @@ from api.observability import (  # noqa: E402
     instrument_app,
 )
 
+# Polled by infrastructure, not by users: a container healthcheck hits /health
+# and the UI sidebar hits /ready every few seconds. Logged at DEBUG so they stay
+# available when something is wrong without drowning real traffic.
+_QUIET_PATHS = {"/health", "/ready"}
+
 configure_logging()
 # Before the app exists, so the instrumentors below attach to the provider
 # this installs. A no-op unless an OTLP endpoint is configured.
@@ -120,6 +125,17 @@ async def request_context(request: Request, call_next):
     token = request_id_var.set(request_id)
     started = time.perf_counter()
 
+    # A start line, at DEBUG. Completion-only logging means a request that
+    # hangs in Ollama or dies mid-generation leaves NOTHING in Loki — with a
+    # two-slot semaphore and multi-second generations that is a real scenario.
+    # At DEBUG it costs nothing until needed: set LOG_LEVEL=DEBUG, reproduce,
+    # and the orphaned start line names the victim.
+    logger.debug(
+        "%s %s started", request.method, request.url.path,
+        extra={"event": "request_started", "method": request.method,
+               "path": request.url.path, "request_id": request_id},
+    )
+
     try:
         response = await call_next(request)
     except Exception:
@@ -137,20 +153,30 @@ async def request_context(request: Request, call_next):
     duration_ms = round((time.perf_counter() - started) * 1000, 1)
     response.headers["X-Request-ID"] = request_id
 
-    # One structured access line per request. /health is excluded because a
-    # container healthcheck every few seconds would otherwise be most of what
-    # Loki stores.
-    if request.url.path != "/health":
-        logger.info(
-            "request",
-            extra={
-                "method": request.method,
-                "path": request.url.path,
-                "status": response.status_code,
-                "duration_ms": duration_ms,
-                "request_id": request_id,
-            },
-        )
+    # One structured access line per request.
+    #
+    # The message is a sentence, not the word "request": Grafana's log panel
+    # renders the BODY, so a fixed string makes every row look identical and
+    # hides the useful part until you expand it. The structured fields are
+    # unchanged — this only affects what is readable at a glance.
+    #
+    # /health and /ready drop to DEBUG rather than INFO. The Docker healthcheck
+    # polls one and the Streamlit sidebar polls the other every few seconds, so
+    # between them they were most of what reached Loki.
+    level = logging.DEBUG if request.url.path in _QUIET_PATHS else logging.INFO
+    logger.log(
+        level,
+        "%s %s -> %s in %sms",
+        request.method, request.url.path, response.status_code, duration_ms,
+        extra={
+            "event": "request_finished",
+            "method": request.method,
+            "path": request.url.path,
+            "status": response.status_code,
+            "duration_ms": duration_ms,
+            "request_id": request_id,
+        },
+    )
     return response
 
 

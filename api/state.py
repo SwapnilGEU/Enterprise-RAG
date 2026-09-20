@@ -36,6 +36,10 @@ logger = logging.getLogger("api.state")
 # every poll; short enough that a dependency coming up is noticed in seconds.
 RECHECK_INTERVAL = float(os.environ.get("API_RECHECK_INTERVAL", "10"))
 
+# Log a queue wait only past this many seconds. Below it, waiting is simply how
+# a two-slot semaphore behaves, and a line per request would be noise.
+QUEUE_WAIT_LOG_THRESHOLD = float(os.environ.get("API_QUEUE_WAIT_LOG_THRESHOLD", "1.0"))
+
 
 class ComponentStatus:
     """Whether one dependency is usable, and why not if it isn't."""
@@ -144,9 +148,20 @@ class ServiceState:
         acquired = self._generation.acquire(
             timeout=settings.GENERATION_QUEUE_TIMEOUT if timeout is None else timeout
         )
-        metrics.queue_wait(endpoint, time.perf_counter() - started, acquired)
+        waited = time.perf_counter() - started
+        metrics.queue_wait(endpoint, waited, acquired)
         if acquired:
             metrics.slot_held(endpoint, 1)
+            # Only when it actually queued. A slot taken immediately is the
+            # normal case and logging it would add a line per request saying
+            # nothing; a multi-second wait is the thing a user felt.
+            if waited >= QUEUE_WAIT_LOG_THRESHOLD:
+                logger.info(
+                    "waited %.1fs for a generation slot (%s)", waited, endpoint,
+                    extra={"event": "queue_wait", "endpoint": endpoint,
+                           "waited_s": round(waited, 2),
+                           "max_concurrent": settings.MAX_CONCURRENT_GENERATIONS},
+                )
         return acquired
 
     def release_generation_slot(self, endpoint: str = "unknown") -> None:
