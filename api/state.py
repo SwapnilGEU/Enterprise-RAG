@@ -24,7 +24,7 @@ import os
 import threading
 import time
 
-from api import settings
+from api import metrics, settings
 from api.logging_config import request_id_var  # noqa: F401  (re-exported for convenience)
 
 import logging
@@ -35,6 +35,10 @@ logger = logging.getLogger("api.state")
 # enough that a healthcheck polling every 5s does not rebuild the agent on
 # every poll; short enough that a dependency coming up is noticed in seconds.
 RECHECK_INTERVAL = float(os.environ.get("API_RECHECK_INTERVAL", "10"))
+
+# Log a queue wait only past this many seconds. Below it, waiting is simply how
+# a two-slot semaphore behaves, and a line per request would be noise.
+QUEUE_WAIT_LOG_THRESHOLD = float(os.environ.get("API_QUEUE_WAIT_LOG_THRESHOLD", "1.0"))
 
 
 class ComponentStatus:
@@ -131,14 +135,39 @@ class ServiceState:
 
     # --- bounding the generator -------------------------------------------
 
-    def acquire_generation_slot(self, timeout: float | None = None) -> bool:
-        return self._generation.acquire(
+    def acquire_generation_slot(self, endpoint: str = "unknown",
+                                timeout: float | None = None) -> bool:
+        """Wait for a slot, and record how long that took.
+
+        The wait is measured here rather than in the handler because this is
+        the only place that knows the difference between "waited and got one"
+        and "waited and gave up" — and the second is a user-visible 503 that an
+        HTTP error-rate panel cannot tell apart from a backend failure.
+        """
+        started = time.perf_counter()
+        acquired = self._generation.acquire(
             timeout=settings.GENERATION_QUEUE_TIMEOUT if timeout is None else timeout
         )
+        waited = time.perf_counter() - started
+        metrics.queue_wait(endpoint, waited, acquired)
+        if acquired:
+            metrics.slot_held(endpoint, 1)
+            # Only when it actually queued. A slot taken immediately is the
+            # normal case and logging it would add a line per request saying
+            # nothing; a multi-second wait is the thing a user felt.
+            if waited >= QUEUE_WAIT_LOG_THRESHOLD:
+                logger.info(
+                    "waited %.1fs for a generation slot (%s)", waited, endpoint,
+                    extra={"event": "queue_wait", "endpoint": endpoint,
+                           "waited_s": round(waited, 2),
+                           "max_concurrent": settings.MAX_CONCURRENT_GENERATIONS},
+                )
+        return acquired
 
-    def release_generation_slot(self) -> None:
+    def release_generation_slot(self, endpoint: str = "unknown") -> None:
         try:
             self._generation.release()
+            metrics.slot_held(endpoint, -1)
         except ValueError:
             # BoundedSemaphore raises on over-release. That means a bug in the
             # acquire/release pairing, but it must not take down a request that

@@ -11,6 +11,17 @@
 
 Qdrant is cloud — nothing to start.
 
+## What comes up
+
+| service | image | port |
+|---|---|---|
+| `api` | built here | 8000 |
+| `ui` | built here | 8501 |
+| `lgtm` | `grafana/otel-lgtm` | 3000 Grafana · 4317/4318 OTLP · 9090 Prometheus |
+
+`lgtm` is pulled, not built, so `docker compose build` skips it. The **first**
+`up` downloads about 1GB — it looks stalled for a minute and isn't.
+
 ## Build (once, and after any code change)
 
 ```
@@ -23,7 +34,13 @@ docker compose build
 docker compose up -d
 ```
 
-Open http://localhost:8501
+Or in one step: `docker compose up -d --build`.
+
+| | |
+|---|---|
+| Ask questions | http://localhost:8501 |
+| API docs | http://localhost:8000/docs |
+| Dashboards | http://localhost:3000 — admin / admin |
 
 ## Check it works
 
@@ -33,6 +50,15 @@ curl http://localhost:8000/ready
 
 All three (qdrant, ollama, agent) should say `"ready":true`.
 The first check can take ~30s while Ollama loads the model.
+
+Telemetry should report itself at boot:
+
+```
+docker compose logs api | grep -E "tracing on|metrics on|log export on"
+```
+
+Three lines means traces, metrics and logs are all exporting. See
+[OBSERVABILITY.md](OBSERVABILITY.md).
 
 ## Watch logs
 
@@ -45,6 +71,9 @@ docker compose logs -f api
 ```
 docker compose down
 ```
+
+Telemetry survives this — `lgtm` writes to the `lgtm-data` volume. To throw it
+away as well, `docker compose down -v`.
 
 ---
 
@@ -80,6 +109,18 @@ Check `/ready` first — it names the broken component and the error.
 
 `missing_settings` non-empty means `.env` wasn't picked up at all — it must
 be in the same folder as docker-compose.yml.
+
+**UI changes not showing?** `ui/app.py` is baked into the image at build time.
+`docker compose build ui` (or `up -d --build`) is required.
+
+**API can't reach Ollama?** Read the errno before reaching for the usual
+answer. `ECONNREFUSED` means it routed fine and nothing was listening — that is
+the `OLLAMA_HOST=0.0.0.0` case. `ENETUNREACH` means it couldn't route at all,
+which points at the `extra_hosts` line in `docker-compose.yml`: Docker Desktop
+already provides `host.docker.internal`, and overriding it with the bridge
+gateway resolves to an address with no route to Windows. The line is only
+needed on native Linux. It is also a container-creation setting, so
+`--force-recreate` is required for a change to it to take effect.
 
 No restart needed after fixing a dependency: `/ready` retries every 10s.
 

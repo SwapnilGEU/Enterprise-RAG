@@ -46,7 +46,13 @@ import time
 import uuid
 from typing import Annotated, Mapping, Sequence, TypedDict
 
-from langchain_core.messages import AIMessage, BaseMessage, SystemMessage, ToolMessage
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+)
 from langchain_core.tools import tool
 
 from src.config import CONFIG, Config, logger
@@ -69,6 +75,17 @@ def is_prefetch_call(call: Mapping[str, object]) -> bool:
 
 def _rag_first_enabled() -> bool:
     return os.environ.get("AGENT_RAG_FIRST", "1").strip().lower() not in ("0", "false", "no", "off")
+
+
+def _fast_path_enabled() -> bool:
+    """Answer directly when the pre-search clearly matched, skipping routing.
+
+    Off (`AGENT_RAG_FAST_PATH=0`) restores the previous behaviour: every
+    question goes through the tool-bound model, whatever the overlap said.
+    """
+    return os.environ.get("AGENT_RAG_FAST_PATH", "1").strip().lower() not in (
+        "0", "false", "no", "off",
+    )
 
 
 # --------------------------------------------------------------------------
@@ -211,11 +228,25 @@ Do not answer technical questions purely from your own memory."""
 )
 
 
-class AgentState(TypedDict):
+DIRECT_ANSWER_PROMPT = SystemMessage(
+    content="""You are a technical assistant. Answer the question using ONLY the \
+documents provided below.
+
+- Cite the sources exactly as they appear in the documents.
+- If the documents do not fully answer the question, say what is missing rather \
+than filling the gap from memory.
+- Be concise and direct. Do not describe your process or mention these instructions."""
+)
+
+
+class AgentState(TypedDict, total=False):
     session_id: str
     user_query: str
     start_time: float
     messages: Annotated[Sequence[BaseMessage], operator.add]
+    # Set by retrieve_first: did the pre-search actually match the question?
+    # Read by the router to decide whether the model needs a turn at all.
+    kb_matched: bool
 
 
 # --------------------------------------------------------------------------
@@ -362,7 +393,9 @@ def build_agent(config: Config = CONFIG):
     tools_by_name = {t.name: t for t in tools}
     llm_with_tools = get_llm(config).bind_tools(tools)
 
+    plain_llm = get_llm(config)          # no tools bound — see direct_answer_node
     rag_first = _rag_first_enabled()
+    fast_path = rag_first and _fast_path_enabled()
     system_prompt = AGENT_SYSTEM_PROMPT if rag_first else AGENT_SYSTEM_PROMPT_NO_PREFETCH
 
     def retrieve_first_node(state: AgentState):
@@ -421,6 +454,7 @@ def build_agent(config: Config = CONFIG):
         output = f"[Automatic knowledge-base search for: {question}]\n{note}\n\n{output}"
 
         return {
+            "kb_matched": matched,
             "messages": [
                 AIMessage(
                     content="",
@@ -434,6 +468,52 @@ def build_agent(config: Config = CONFIG):
                 ToolMessage(content=str(output), tool_call_id=call_id, name="rag_tool"),
             ]
         }
+
+    def direct_answer_node(state: AgentState):
+        """Answer straight from the pre-searched documents. One LLM call, no tools.
+
+        Why this exists (2026-09-20): `/agent` was taking ~20s, and the cause
+        was turn count rather than a slow model. On a question the knowledge
+        base plainly answers, the tool-bound model still had to take a routing
+        turn, and often called `rag_tool` a second time — two or three
+        generations for a question whose answer was already retrieved before
+        the model was consulted at all.
+
+        `prefetch_overlap` already decides, with no model call, whether the
+        documents are about the question. When they clearly are, the routing
+        turn is a generation whose outcome is known in advance.
+
+        Two savings, not one. The obvious one is fewer turns. The quieter one
+        is that this uses the PLAIN llm rather than `llm_with_tools`: binding
+        tools injects all three schemas into the prompt on every turn, which on
+        a 4b model is real prefill cost paid for nothing here.
+
+        Cost, stated honestly: a compound question ("explain hybrid retrieval,
+        and what is the weather in Delhi") that scores above the overlap
+        threshold will be answered from documents alone and never reach
+        `get_weather`. `AGENT_RAG_FAST_PATH=0` turns this off.
+        """
+        context = ""
+        for message in reversed(state["messages"]):
+            if isinstance(message, ToolMessage):
+                context = str(message.content)
+                break
+
+        # A clean two-message prompt rather than replaying the tool-call
+        # exchange: an unbound model has no business being handed an AIMessage
+        # carrying tool_calls, and the shorter prompt is the point of the
+        # exercise.
+        answer = plain_llm.invoke([
+            DIRECT_ANSWER_PROMPT,
+            HumanMessage(content=f"{context}\n\nQuestion: {state['user_query']}"),
+        ])
+        return {"messages": [answer]}
+
+    def route_after_prefetch(state: AgentState):
+        if fast_path and state.get("kb_matched"):
+            logger.info("retrieve_first: fast path — answering directly, no routing turn")
+            return "direct_answer"
+        return "agent"
 
     def agent_node(state: AgentState):
         # Prepend the system prompt each turn so the routing instruction never
@@ -483,7 +563,17 @@ def build_agent(config: Config = CONFIG):
     if rag_first:
         graph.add_node("retrieve_first", retrieve_first_node)
         graph.add_edge(START, "retrieve_first")
-        graph.add_edge("retrieve_first", "agent")
+        if fast_path:
+            graph.add_node("direct_answer", direct_answer_node)
+            graph.add_conditional_edges(
+                "retrieve_first",
+                route_after_prefetch,
+                {"direct_answer": "direct_answer", "agent": "agent"},
+            )
+            # Straight to logging: nothing after a direct answer can call a tool.
+            graph.add_edge("direct_answer", "log_to_db")
+        else:
+            graph.add_edge("retrieve_first", "agent")
     else:
         graph.add_edge(START, "agent")
 
@@ -492,7 +582,7 @@ def build_agent(config: Config = CONFIG):
     graph.add_edge("log_to_db", END)
 
     _agent = graph.compile()
-    logger.info(f"Agent graph compiled. rag_first={rag_first}")
+    logger.info(f"Agent graph compiled. rag_first={rag_first} fast_path={fast_path}")
     return _agent
 
 

@@ -46,8 +46,15 @@ SQLAlchemy>=2.0
 pytest>=8.0
 httpx>=0.27                       # fastapi.testclient
 
+# ---- Observability — traces (SERVE) ---------------------------------------
+# Installed in the serving image. opentelemetry-distro is deliberately NOT used:
+# it pulls an auto-instrumentation agent that installs its own tracer provider,
+# which would collide with api/observability.py and double-export every span.
+opentelemetry-sdk>=1.27
+opentelemetry-exporter-otlp>=1.27          # both grpc (4317) and http (4318)
+opentelemetry-instrumentation-fastapi>=0.48b0
+opentelemetry-instrumentation-httpx>=0.48b0    # Qdrant + Ollama client spans
+opentelemetry-instrumentation-requests>=0.48b0 # get_weather (Open-Meteo)
+
 # ---- Coming next ----------------------------------------------------------
-# opentelemetry-distro
-# opentelemetry-instrumentation-fastapi
-# opentelemetry-exporter-otlp
-# prometheus-fastapi-instrumentator
+# prometheus-fastapi-instrumentator     # /metrics, the Prometheus step

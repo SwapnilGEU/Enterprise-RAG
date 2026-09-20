@@ -19,6 +19,16 @@ langchain-core>=0.3
 langchain-ollama>=0.2
 requests>=2.31
 
+# ---- observability (traces) ----
+# MLflow is NOT here on purpose: it is an eval-time dependency, and the serving
+# path exports to Tempo instead (see api/observability.py for why the two do
+# not share a trace).
+opentelemetry-sdk>=1.27
+opentelemetry-exporter-otlp>=1.27          # both grpc (4317) and http (4318)
+opentelemetry-instrumentation-fastapi>=0.48b0
+opentelemetry-instrumentation-httpx>=0.48b0    # Qdrant + Ollama client spans
+opentelemetry-instrumentation-requests>=0.48b0 # get_weather (Open-Meteo)
+
 # ---- API ----
 fastapi>=0.115
 uvicorn[standard]>=0.30
