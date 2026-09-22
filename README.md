@@ -32,6 +32,52 @@ What makes this more than a demo:
 | **Evaluation you can trust** | Retrieval metrics with **no LLM judge**, so they cost nothing and can't be rate limited |
 | **Honest readiness** | `/ready` reports each dependency separately; Postgres going down doesn't take retrieval with it |
 
+<p align="center">
+  <img src="docs/images/grafana-dashboard.png" alt="Grafana dashboard: request volume, latency percentiles, retrieval vs generation time" width="900">
+</p>
+
+---
+
+## Results
+
+Measured on an RTX 4050 (6GB) with Qwen3-4B-Instruct via Ollama, against a
+10-question golden set over **5,667 chunks** from 4 documents. Judge is
+Gemini 2.5 Flash. Reproduce with `python mlflow/ragflow.py`.
+
+### Answer quality
+
+| Metric | Pass rate | What it measures |
+|---|---|---|
+| **Faithfulness** | **100%** | Every claim in the answer is supported by the retrieved context — no hallucination |
+| **Contextual precision** | **100%** | Relevant chunks ranked above irrelevant ones |
+| **Contextual recall** | **90%** | The retrieved context covers what the reference answer needs |
+| **Answer relevancy** | **80%** | The answer actually addresses the question asked |
+
+Faithfulness is the one that matters most for a RAG system: at 100%, the model
+is answering *from the documents* rather than from its own weights.
+
+### Latency
+
+| Path | Typical | Notes |
+|---|---|---|
+| `/query` — retrieve + answer | **~6.0s** | One generation |
+| `/agent` — knowledge-base match | **~11.6s** | Fast path: one generation, no routing turn |
+| `/agent` — tool call required | **~24.8s** | Routing turn + tool + answer |
+| `/health` under 6 concurrent generations | **9ms** | The event loop stays free — handlers run in a threadpool |
+
+### Engineering
+
+| | |
+|---|---|
+| Agent fast path on KB-answered questions | **2 generations → 1** |
+| Boot time (warmup moved off the startup path) | **12ms** |
+| Serving image vs. full install | **~2GB smaller** (no torch / sentence-transformers) |
+| Tests | **53** unit + **54** API assertions, network-free |
+
+<sub>Sample size is 10 questions — enough to catch a regression, not enough to
+publish. Retrieval-level metrics (hit_rate@k, recall@k, MRR) run judge-free via
+<code>mlflow/retrievalflow.py</code>.</sub>
+
 ---
 
 ## How it fits together
@@ -127,6 +173,10 @@ of erroring somewhere deeper. First check can take ~30s while Ollama loads.
 > **No Docker?** `uvicorn api.main:app` and `streamlit run ui/app.py` work
 > exactly the same. See [DOCKER.md](DOCKER.md) for the differences.
 
+<p align="center">
+  <img src="docs/images/ui-answer.png" alt="The Streamlit UI answering a question with citations and per-component service health" width="900">
+</p>
+
 ---
 
 ## Seeing what it's doing
@@ -141,30 +191,98 @@ Open Grafana, find a slow request in the logs, click its `trace_id`, and see
 exactly where the time went — Qdrant search vs. Ollama generation vs. waiting
 for a generation slot.
 
+<p align="center">
+  <img src="docs/images/loki-logs.png" alt="Loki showing per-request log lines with latency and tool usage" width="900">
+</p>
+
 **→ [OBSERVABILITY.md](OBSERVABILITY.md)** — what's collected, the queries
 worth knowing, and the ready-made dashboard.
 
 ---
 
-## Measuring whether it's any good
+## Testing and evaluation
 
-Two different questions, two different tools:
+Three layers, answering three different questions.
+
+**1. Does the code work?** — 53 unit tests plus 54 API assertions, none of
+which need network. The notebook's "check the outcome" cells became
+assertions, so extraction, chunking, the payload round trip and the vector
+store are all covered offline.
 
 ```bash
-# Is retrieval finding the right chunks?  (no LLM judge — free, deterministic)
-python mlflow/retrievalflow.py --label "baseline"
-
-# Are the answers faithful and relevant?  (LLM judge)
-python mlflow/ragflow.py
-
-# Is the agent routing to the right tool?
-python mlflow/agentflow.py --no-judge
+pytest                      # fast, no services required
+pytest -m integration       # the ones that need live Qdrant / Ollama / Postgres
 ```
 
-The first one is the one to run every time you add documents — it costs
-nothing, can't be rate limited, and moves only when retrieval actually changes.
+**2. Is retrieval finding the right chunks?** — deterministic, **no LLM
+judge**, so it costs nothing and cannot be rate limited. `hit_rate@k`, `MRR@k`,
+`recall@k` and `precision@k` at k in {1,3,5,10,20}, against human-labelled
+chunk ids.
 
-**→ [mlflow/README.md](mlflow/README.md)** for the full evaluation story.
+```bash
+python mlflow/retrievalflow.py --label "baseline"
+```
+
+The diagnostic worth knowing: **`recall@20` vs `recall@5`**. The first is what
+dense + sparse found at all; the second is what survived the ColBERT rerank. A
+large gap means the chunks *are* being retrieved and the reranker is burying
+them — a completely different fix from "the chunks were never found".
+
+**3. Are the answers any good?** — four DeepEval scorers through MLflow.
+
+```bash
+python mlflow/ragflow.py                  # faithfulness, relevancy, contextual precision/recall
+python mlflow/agentflow.py --no-judge     # tool routing — deterministic, free
+```
+
+<p align="center">
+  <img src="docs/images/mlflow-eval.png" alt="MLflow evaluation run: four scorers across 10 questions" width="880">
+</p>
+
+Every run logs parameters, metrics and traces to MLflow, so "did adding those
+three papers help?" becomes a comparison rather than a feeling.
+
+**→ [mlflow/README.md](mlflow/README.md)** for the full evaluation story,
+including the judge-quota circuit breaker and why the labels come from three
+independent retrievers rather than from the current pipeline.
+
+---
+
+## Reliability
+
+Small model, network dependencies, one GPU — things fail. The interesting part
+is *which* failures are handled, and how.
+
+**Validation at the edge.** Pydantic schemas reject bad input before any work
+happens: `question` is 1–2000 characters, `top_k` is 1–50, `session_id` is
+capped. A malformed request costs a 422, not a wasted generation.
+
+**Retries that understand "succeeded but useless".** `call_with_retry` does 3
+attempts with exponential backoff — 0.5s, 1s, 2s, capped at 8s, plus up to
+0.25s of jitter so parallel callers don't synchronise on a shared service. The
+part worth stealing is that it retries on **validation**, not only exceptions:
+
+```python
+validate_retrieval(points)       # zero results isn't an error — but it isn't usable
+validate_llm_response(response)  # empty content usually means the model was still loading
+```
+
+Neither of those raises. Both are worth one more attempt before giving up, and
+without this they would sail through as a successful empty answer.
+
+**Degraded answers are a field, not an error.** If generation partly fails, the
+response is still a 200 carrying `degraded: true` and `failure_stage`, because
+a partial answer with citations beats a 502. That is also why
+`rag_answers_total{degraded="true"}` exists as a metric — an error-rate panel
+cannot see a successful-looking failure.
+
+**Per-component readiness.** Postgres going down 503s `/agent` while `/query`
+stays 200. Failed components are re-checked on `/ready`, rate limited and
+lock-guarded, so a dependency that comes back is picked up automatically — no
+restart needed.
+
+**Bounded generation.** A semaphore caps concurrent generations; past the
+timeout you get a 503 you can act on instead of an invisible queue.
 
 ---
 
@@ -186,13 +304,6 @@ streamlit run ui/app.py                            # http://localhost:8501
 
 To send telemetry from a local run, copy `api/.env.example` to `api/.env` and
 start the backend with `docker compose up -d lgtm`.
-
-Tests:
-
-```bash
-pytest                      # fast, no network needed
-pytest -m integration       # the ones that need live services
-```
 
 </details>
 
@@ -231,6 +342,7 @@ src/                 the library — pure functions and lazy factories
   vector_store.py    client, collection, dedup, upload
   retrieval.py       hybrid search + ColBERT rerank
   generation.py      prompt, LLM, retries, generate_answer
+  retry.py           backoff + validators
   history.py         Postgres query_history
   agent.py           tools + LangGraph graph
 
@@ -294,11 +406,9 @@ far cheaper to fix there than to discover in an answer.
   including `/health`. FastAPI runs `def` handlers in a threadpool instead —
   which is why `api/state.py` exists to make the singletons thread-safe.
 - **Two slots, on purpose.** One 4b model on a 6GB card doesn't go faster with
-  ten concurrent requests, it thrashes. A semaphore caps generations and past
-  the timeout returns a 503 you can act on rather than an invisible queue.
-- **Readiness is per component.** Postgres going down 503s `/agent` while
-  `/query` stays 200. A single boolean would pull a healthy retrieval endpoint
-  out of a load balancer for a dependency it never touches.
+  ten concurrent requests, it thrashes.
+- **Readiness is per component.** A single boolean would pull a healthy
+  retrieval endpoint out of a load balancer for a dependency it never touches.
 - **The agent takes a fast path.** When the automatic knowledge-base search
   clearly matches the question, the answer comes straight from those documents
   — skipping a routing turn the model didn't need. `AGENT_RAG_FAST_PATH=0`

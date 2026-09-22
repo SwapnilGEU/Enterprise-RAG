@@ -1,14 +1,10 @@
-"""RAG answer-quality evaluation — the retrieval half, without the agent.
-
-This is where MLflow goes. Right now it runs the golden questions through
-generate_answer(), judges each with the local model, and writes a CSV; the
+"""
 MLflow block at the bottom is commented out and ready to fill in.
 
     python evaluation/eval_rag.py
     python evaluation/eval_rag.py --top-k 8        # one point in the sweep
     python evaluation/eval_rag.py --limit 3
-
-Worth remembering when you wire up MLflow: the value is comparing runs, not
+When you wire up MLflow: the value is comparing runs, not
 logging one. The parameters worth sweeping are --top-k, and in CONFIG the
 semantic_chunk_percentile and semantic_chunk_max_chars (both need a re-index).
 """

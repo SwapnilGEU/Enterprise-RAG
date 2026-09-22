@@ -312,13 +312,20 @@ def main() -> int:
     # same sentence. Name the real one.
     errored = any("error" in name.lower() for name in results.metrics)
     if counts["quota_exhausted"]:
+        quota_info = judge_quota.tripped()
+        if quota_info is None:
+            quota_info = judge_quota.QuotaInfo(
+                exhausted=counts["quota_exhausted"],
+                limit=0,
+                calls=counts["calls"],
+            )
         print(
             "\n"
             + "=" * 70
             + f"\nRUN INVALID — judge quota ran out mid-run: {counts['quota_exhausted']}\n"
             + "Scores above are not trustworthy: every call after the limit was hit\n"
             "failed without reaching the judge.\n\n"
-            + judge_quota.quota_advice(args.judge, judge_quota.tripped())
+            + judge_quota.quota_advice(args.judge, quota_info)
             + "\n"
             + "=" * 70
         )
