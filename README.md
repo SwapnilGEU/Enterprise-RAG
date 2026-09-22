@@ -233,6 +233,7 @@ them — a completely different fix from "the chunks were never found".
 ```bash
 python mlflow/ragflow.py                  # faithfulness, relevancy, contextual precision/recall
 python mlflow/agentflow.py --no-judge     # tool routing — deterministic, free
+python mlflow/agentflow.py --judge <name> # Local Model calling as judge eg:ollama:/qwen3:4b-instruct
 ```
 
 <p align="center">
