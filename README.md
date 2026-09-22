@@ -62,7 +62,7 @@ is answering *from the documents* rather than from its own weights.
 |---|---|---|
 | `/query` — retrieve + answer | **~6.0s** | One generation |
 | `/agent` — knowledge-base match | **~11.6s** | Fast path: one generation, no routing turn |
-| `/agent` — tool call required | **~24.8s** | Routing turn + tool + answer |
+| `/agent` — tool call required | **~15.8s** | Routing turn + tool + answer |
 | `/health` under 6 concurrent generations | **9ms** | The event loop stays free — handlers run in a threadpool |
 
 ### Engineering
