@@ -38,12 +38,25 @@ CREATE TABLE IF NOT EXISTS query_history (
     latency_ms FLOAT,
     success BOOLEAN,
     tokens_used INTEGER,
-    retrieval_count INTEGER,
+    tokens_per_sec FLOAT,
+    total_tokens_per_sec FLOAT,
     error_type VARCHAR(100),
     route VARCHAR(50),
     tool_used VARCHAR(100)
 );
 """
+
+# Brings a table created by an older SCHEMA up to date. CREATE TABLE IF NOT
+# EXISTS never alters an existing table, so without this a database created
+# before 2026-09-23 would keep retrieval_count and never gain the new columns.
+# Every statement is idempotent, so running it on each startup is safe.
+MIGRATIONS = (
+    # Removed 2026-09-23: nothing ever wrote it, and the source count already
+    # reaches Loki (n_sources) and Prometheus (rag.retrieval.sources).
+    "ALTER TABLE query_history DROP COLUMN IF EXISTS retrieval_count;",
+    "ALTER TABLE query_history ADD COLUMN IF NOT EXISTS tokens_per_sec FLOAT;",
+    "ALTER TABLE query_history ADD COLUMN IF NOT EXISTS total_tokens_per_sec FLOAT;",
+)
 
 
 _connection = None
@@ -91,23 +104,33 @@ def ensure_schema(config: Config = CONFIG) -> None:
     """Create query_history if it doesn't exist. Call once at startup."""
     with _lock, get_connection(config).cursor() as cursor:
         cursor.execute(SCHEMA)
+        for statement in MIGRATIONS:
+            cursor.execute(statement)
     logger.info("query_history table ready.")
 
 
 def save_query_history(session_id: str, user_query: str, generated_answer: str,
                        route: str, tool_used: str, latency_ms: float,
-                       success: bool, config: Config = CONFIG) -> None:
+                       success: bool, tokens_used: int | None = None,
+                       tokens_per_sec: float | None = None,
+                       total_tokens_per_sec: float | None = None,
+                       config: Config = CONFIG) -> None:
     """Log one answered query. Never raises: a logging failure must not take
-    down an answer the user already has."""
+    down an answer the user already has.
+
+    The token fields default to None so a caller that cannot count tokens
+    still logs; see src/usage.py for what each one measures."""
     insert = """
     INSERT INTO query_history (
-        session_id, user_query, generated_answer, route, tool_used, latency_ms, success
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s);
+        session_id, user_query, generated_answer, route, tool_used, latency_ms, success,
+        tokens_used, tokens_per_sec, total_tokens_per_sec
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
     """
     try:
         with _lock, get_connection(config).cursor() as cursor:
             cursor.execute(insert, (
-                session_id, user_query, generated_answer, route, tool_used, latency_ms, success
+                session_id, user_query, generated_answer, route, tool_used, latency_ms, success,
+                tokens_used, tokens_per_sec, total_tokens_per_sec,
             ))
     except Exception as exc:
         logger.error(f"save_query_history failed (continuing anyway): {exc!r}")

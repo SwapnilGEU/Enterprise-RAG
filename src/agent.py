@@ -58,6 +58,7 @@ from langchain_core.tools import tool
 from src.config import CONFIG, Config, logger
 from src.generation import generate_answer, get_llm
 from src.history import save_query_history
+from src.usage import llm_usage, total_tokens_per_sec
 from src.payload import format_source
 
 
@@ -537,6 +538,11 @@ def build_agent(config: Config = CONFIG):
                     if not is_prefetch_call(tc):
                         used_tools.add(tc["name"])
 
+        # Summed over every model turn in the graph (routing + final answer).
+        # Not included: the SQL sub-agent's own calls inside sql_tool, which
+        # run in a separate graph whose messages never reach this state.
+        usage = llm_usage(state["messages"])
+
         save_query_history(
             session_id=state.get("session_id", "default"),
             user_query=state["user_query"],
@@ -545,6 +551,9 @@ def build_agent(config: Config = CONFIG):
             tool_used=",".join(sorted(used_tools)) if used_tools else "none",
             latency_ms=latency_ms,
             success=True,
+            tokens_used=usage["total_tokens"] or None,
+            tokens_per_sec=usage["tokens_per_sec"],
+            total_tokens_per_sec=total_tokens_per_sec(usage["total_tokens"], latency_ms / 1000),
             config=config,
         )
         return {}
