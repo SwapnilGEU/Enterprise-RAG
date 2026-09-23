@@ -5,11 +5,13 @@ the generic retry wrapper, and generate_answer() which ties them together.
 This is the module a FastAPI layer would import.
 """
 
+import time
 from functools import partial
 
 from src.config import CONFIG, Config, logger
 from src.payload import format_source
 from src.retrieval import RetrievedDoc, retrieve
+from src.usage import llm_usage, total_tokens_per_sec
 
 # Section 16 now lives in src/retry.py so retrieval.py can share it (the
 # RETRIEVER span needs the retry to happen inside the span). Re-exported here
@@ -120,6 +122,28 @@ Question:
 # End-to-end answer (Section 17)
 # --------------------------------------------------------------------------
 
+def _metrics(started: float, retrieval_s: float | None = None,
+             llm_s: float | None = None, response=None) -> dict:
+    """Per-request timing and token accounting, attached to every result —
+    degraded ones included, since a slow failure is worth seeing too.
+
+    Latencies are in ms. llm_latency_ms is wall-clock around the call, so it
+    includes retries and prompt prefill; tokens_per_sec is Ollama's own decode
+    speed and excludes both. The gap between them is informative."""
+    total_s = time.perf_counter() - started
+    usage = llm_usage([response] if response is not None else [])
+    return {
+        "retrieval_latency_ms": round(retrieval_s * 1000, 1) if retrieval_s is not None else None,
+        "llm_latency_ms": round(llm_s * 1000, 1) if llm_s is not None else None,
+        "total_latency_ms": round(total_s * 1000, 1),
+        "prompt_tokens": usage["prompt_tokens"],
+        "completion_tokens": usage["completion_tokens"],
+        "total_tokens": usage["total_tokens"],
+        "tokens_per_sec": usage["tokens_per_sec"],
+        "total_tokens_per_sec": total_tokens_per_sec(usage["total_tokens"], total_s),
+    }
+
+
 def retrieve_with_retry(query: str, top_k: int | None = None, config: Config = CONFIG):
     """Kept for backwards compatibility. retrieve() now retries internally —
     inside its MLflow RETRIEVER span — so this is a plain pass-through."""
@@ -129,9 +153,11 @@ def retrieve_with_retry(query: str, top_k: int | None = None, config: Config = C
 def generate_answer(question: str, top_k: int | None = None, config: Config = CONFIG) -> dict:
     """End-to-end RAG: retrieve -> build context -> build prompt -> generate.
 
-    Returns {answer, sources, context, degraded, failure_stage?}. `sources` are
-    the raw Qdrant payloads, so they carry section_heading and page_label.
+    Returns {answer, sources, context, degraded, metrics, failure_stage?}.
+    `sources` are the raw Qdrant payloads, so they carry section_heading and
+    page_label. `metrics` is latency and token usage — see _metrics().
     """
+    started = time.perf_counter()
     try:
         points = retrieve(question, top_k=top_k, config=config)
     except Exception as exc:
@@ -142,12 +168,15 @@ def generate_answer(question: str, top_k: int | None = None, config: Config = CO
             "context": "",
             "degraded": True,
             "failure_stage": "retrieval",
+            "metrics": _metrics(started, retrieval_s=time.perf_counter() - started),
         }
+    retrieval_s = time.perf_counter() - started
 
     docs = [RetrievedDoc(p) for p in points]
     context = build_context(docs)
     prompt = build_prompt(context, question)
 
+    llm_started = time.perf_counter()
     try:
         response = call_with_retry(
             partial(get_llm(config).invoke),
@@ -164,13 +193,16 @@ def generate_answer(question: str, top_k: int | None = None, config: Config = CO
             "context": context,
             "degraded": True,
             "failure_stage": "generation",
+            "metrics": _metrics(started, retrieval_s, time.perf_counter() - llm_started),
         }
+    llm_s = time.perf_counter() - llm_started
 
     return {
         "answer": response.content,
         "sources": [d.metadata for d in docs],
         "context": context,
         "degraded": False,
+        "metrics": _metrics(started, retrieval_s, llm_s, response),
     }
 
 

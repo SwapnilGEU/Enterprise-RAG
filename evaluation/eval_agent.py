@@ -25,6 +25,7 @@ from _common import DATASETS, RESULTS, judge, message_text, show
 from src.agent import build_agent
 from src.generation import get_llm
 from src.history import ensure_schema
+from src.usage import llm_usage, total_tokens_per_sec
 
 
 def run_case(app, case: dict, preview: int) -> dict:
@@ -52,6 +53,7 @@ def run_case(app, case: dict, preview: int) -> dict:
             "tool_correct": False, "reference_answer": case["reference_answer"],
             "actual_answer": agent_error, "tool_outputs": "", "judge_verdict": "",
             "answer_correct": False, "seconds": round(elapsed, 1),
+            "total_tokens": None, "total_tokens_per_sec": None,
         }
 
     # Which tools did the agent actually reach for? dict.fromkeys dedupes while
@@ -70,6 +72,12 @@ def run_case(app, case: dict, preview: int) -> dict:
 
     final_answer = message_text(state["messages"][-1].content)
 
+    # Every model turn in the run (routing + final answer). Measured before the
+    # judge call below, so the judge's tokens are never counted. Excludes the
+    # SQL sub-agent's own calls inside sql_tool — see src/agent.py.
+    total_tokens = llm_usage(state["messages"])["total_tokens"]
+    tokens_rate = total_tokens_per_sec(total_tokens, elapsed)
+
     # What the tools returned — the usual reason a correct route still gives a
     # wrong answer (a SQL error string, an empty retrieval).
     tool_outputs = [
@@ -80,7 +88,8 @@ def run_case(app, case: dict, preview: int) -> dict:
     verdict, is_correct = judge(get_llm(), query, case["reference_answer"], final_answer)
 
     print(f"  tool:   expected {expected_tool!r} | got {actual_tool_str!r}   {'PASS' if tool_matched else 'FAIL'}")
-    print(f"  time:   {elapsed:.1f}s")
+    print(f"  time:   {elapsed:.1f}s   tokens: {total_tokens}   "
+          f"({tokens_rate if tokens_rate is not None else 'n/a'} tok/s total)")
     for output in tool_outputs:
         show("tool returned:", output, limit=preview)
     show("expected:", case["reference_answer"])
@@ -92,6 +101,7 @@ def run_case(app, case: dict, preview: int) -> dict:
         "tool_correct": tool_matched, "reference_answer": case["reference_answer"],
         "actual_answer": final_answer, "tool_outputs": " || ".join(tool_outputs),
         "judge_verdict": verdict, "answer_correct": is_correct, "seconds": round(elapsed, 1),
+        "total_tokens": total_tokens or None, "total_tokens_per_sec": tokens_rate,
     }
 
 
@@ -129,8 +139,19 @@ def main() -> None:
     print("=" * 100)
     print(f"Tool-selection accuracy: {df['tool_correct'].sum()}/{total}  ({tool_accuracy * 100:.0f}%)")
     print(f"Answer correctness:      {df['answer_correct'].sum()}/{total}  ({answer_accuracy * 100:.0f}%)")
-    print(f"Total time:              {df['seconds'].sum():.0f}s\n")
-    print(df[["query", "expected_tool", "actual_tools", "tool_correct", "answer_correct", "seconds"]].to_string(index=False))
+    print(f"Total time:              {df['seconds'].sum():.0f}s")
+
+    # Crashed cases have no token counts; leave them out rather than count as 0.
+    counted = df.dropna(subset=["total_tokens"])
+    run_tokens = int(counted["total_tokens"].sum())
+    run_seconds = float(counted["seconds"].sum())
+    run_rate = round(run_tokens / run_seconds, 2) if run_seconds > 0 and run_tokens else None
+    mean_tokens = counted["total_tokens"].mean() if not counted.empty else None
+    print(f"Total tokens used:       {run_tokens:,}  "
+          f"(mean {mean_tokens:.0f} per query)" if mean_tokens is not None else "Total tokens used:       n/a")
+    print(f"Total tokens/s:          {run_rate if run_rate is not None else 'n/a'}  (run total tokens / run total time)\n")
+    print(df[["query", "expected_tool", "actual_tools", "tool_correct", "answer_correct", "seconds",
+              "total_tokens", "total_tokens_per_sec"]].to_string(index=False))
 
     failures = df[~df["tool_correct"] | ~df["answer_correct"]]
     if not failures.empty:
@@ -156,6 +177,8 @@ def main() -> None:
         "total_cases": total,
         "tool_selection_accuracy": f"{tool_accuracy * 100:.0f}%",
         "answer_correctness": f"{answer_accuracy * 100:.0f}%",
+        "total_tokens": run_tokens,
+        "total_tokens_per_sec": run_rate,
         "cases": results,
     }
     (RESULTS / "agent_evaluation_summary.json").write_text(
@@ -167,7 +190,8 @@ def main() -> None:
     # mlflow.set_experiment("agent_tool_routing")
     # with mlflow.start_run():
     #     mlflow.log_params({"model": CONFIG.ollama_model, "num_ctx": CONFIG.ollama_num_ctx})
-    #     mlflow.log_metrics({"tool_accuracy": tool_accuracy, "answer_accuracy": answer_accuracy})
+    #     mlflow.log_metrics({"tool_accuracy": tool_accuracy, "answer_accuracy": answer_accuracy,
+    #                         "total_tokens": run_tokens, "total_tokens_per_sec": run_rate or 0.0})
     #     mlflow.log_artifact(RESULTS / "agent_evaluation_report.csv")
 
 
