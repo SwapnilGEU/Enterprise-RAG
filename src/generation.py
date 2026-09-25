@@ -55,6 +55,12 @@ def get_llm(config: Config = CONFIG):
         num_predict=config.ollama_num_predict,
         num_ctx=config.ollama_num_ctx,
         reasoning=False,
+        # Stream plain answers, but never a call that has tools bound. When a
+        # tool-calling turn streams, Ollama has to recognise the tool call in
+        # a token stream, and small models (llama3.2:3b especially) then leak
+        # it as text — "I'll call get_weather {...}" — instead of calling it.
+        # Non-streamed, a tool turn behaves exactly as it did before 2026-09-25.
+        disable_streaming="tool_calling",
     )
     logger.info(f"Ollama model: {config.ollama_model} (num_ctx={config.ollama_num_ctx})")
     return _llm
@@ -227,3 +233,119 @@ def print_result(result: dict, show_context: bool = False) -> None:
     if show_context:
         print("\nCONTEXT SENT TO THE MODEL:")
         print(result["context"])
+
+
+# --------------------------------------------------------------------------
+# Streaming answer (added 2026-09-25)
+# --------------------------------------------------------------------------
+# Why this exists: generate_answer() calls `llm.invoke()`, which returns only
+# once the LAST token is decoded. Ollama was producing tokens the whole time,
+# but nothing reached the UI until the whole answer was done, so a 15s answer
+# looked like a 15s freeze.
+#
+# stream_answer() is the same pipeline, as a generator of events:
+#
+#   {"type": "status", "stage": ..., "message": ...}   what is happening now
+#   {"type": "token",  "text": ...}                    a piece of the answer
+#   {"type": "done",   "answer", "sources", "degraded", "failure_stage", "metrics"}
+#
+# generate_answer() is left exactly as it was — evaluation, the agent's
+# rag_tool and /query all still use it.
+#
+# The one real trade-off: retries. Once the first token has been sent it
+# cannot be taken back, so a failure MID-stream ends the answer as degraded
+# instead of retrying. A failure BEFORE the first token still gets the normal
+# call_with_retry() treatment via a non-streaming fallback.
+
+
+def _status(stage: str, message: str) -> dict:
+    return {"type": "status", "stage": stage, "message": message}
+
+
+def stream_answer(question: str, top_k: int | None = None, config: Config = CONFIG):
+    """Generator version of generate_answer(). See the block comment above."""
+    started = time.perf_counter()
+
+    yield _status("retrieving", "🔎 Searching the knowledge base…")
+    try:
+        points = retrieve(question, top_k=top_k, config=config)
+    except Exception as exc:
+        logger.error(f"stream_answer: retrieval failed permanently -- {exc!r}")
+        answer = "I wasn't able to search the knowledge base right now. Please try again shortly."
+        yield {"type": "token", "text": answer}
+        yield {
+            "type": "done", "answer": answer, "sources": [], "degraded": True,
+            "failure_stage": "retrieval",
+            "metrics": _metrics(started, retrieval_s=time.perf_counter() - started),
+        }
+        return
+    retrieval_s = time.perf_counter() - started
+
+    docs = [RetrievedDoc(p) for p in points]
+    sources = [d.metadata for d in docs]
+    documents = list(dict.fromkeys(str(m.get("document", "")) for m in sources if m.get("document")))
+    found = f"📚 Found {len(docs)} passage(s)"
+    if documents:
+        found += " from " + ", ".join(documents[:3]) + (f" +{len(documents) - 3} more" if len(documents) > 3 else "")
+    yield _status("retrieved", found)
+
+    prompt = build_prompt(build_context(docs), question)
+    yield _status("generating", f"✍️ Writing the answer with {config.ollama_model}…")
+
+    llm_started = time.perf_counter()
+    first_token_s = None
+    final = None          # AIMessageChunk accumulated over the stream
+    parts: list[str] = []
+
+    try:
+        for chunk in get_llm(config).stream(prompt):
+            final = chunk if final is None else final + chunk
+            text = chunk.content if isinstance(chunk.content, str) else ""
+            if text:
+                if first_token_s is None:
+                    first_token_s = time.perf_counter() - llm_started
+                parts.append(text)
+                yield {"type": "token", "text": text}
+    except Exception as exc:
+        if parts:
+            # Mid-stream: what was sent stays sent. End it honestly.
+            logger.error(f"stream_answer: generation failed mid-stream -- {exc!r}")
+            note = "\n\n_(The answer was cut off — generation failed partway through.)_"
+            yield {"type": "token", "text": note}
+            yield {
+                "type": "done", "answer": "".join(parts) + note, "sources": sources,
+                "degraded": True, "failure_stage": "generation",
+                "metrics": _metrics(started, retrieval_s, time.perf_counter() - llm_started),
+            }
+            return
+
+        # Nothing sent yet, so the ordinary retry path is still available.
+        logger.warning(f"stream_answer: stream failed before first token, retrying without streaming -- {exc!r}")
+        yield _status("retrying", "⚠️ The model stumbled — retrying…")
+        try:
+            final = call_with_retry(
+                partial(get_llm(config).invoke), prompt, config=config,
+                validate=validate_llm_response, call_name="llm_invoke",
+            )
+        except Exception as exc2:
+            logger.error(f"stream_answer: generation failed permanently -- {exc2!r}")
+            answer = "I found relevant information but couldn't generate a response right now. Please try again."
+            yield {"type": "token", "text": answer}
+            yield {
+                "type": "done", "answer": answer, "sources": sources, "degraded": True,
+                "failure_stage": "generation",
+                "metrics": _metrics(started, retrieval_s, time.perf_counter() - llm_started),
+            }
+            return
+        first_token_s = time.perf_counter() - llm_started
+        parts = [str(final.content)]
+        yield {"type": "token", "text": parts[0]}
+
+    llm_s = time.perf_counter() - llm_started
+    metrics = _metrics(started, retrieval_s, llm_s, final)
+    metrics["time_to_first_token_ms"] = round(first_token_s * 1000, 1) if first_token_s is not None else None
+
+    yield {
+        "type": "done", "answer": "".join(parts), "sources": sources,
+        "degraded": False, "failure_stage": None, "metrics": metrics,
+    }

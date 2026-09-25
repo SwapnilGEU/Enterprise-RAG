@@ -65,6 +65,11 @@ is answering *from the documents* rather than from its own weights.
 | `/agent` — tool call required | **~12.4s** | Routing turn + tool + answer |
 | `/health` under 6 concurrent generations | **9ms** | The event loop stays free — handlers run in a threadpool |
 
+The UI now uses `/query/stream` and `/agent/stream`. They send progress lines
+("searching the knowledge base", "checking the weather for Delhi") and then
+the answer token by token as NDJSON, so what you feel is time-to-first-token,
+not the total. The plain `/query` and `/agent` endpoints are unchanged.
+
 ### Engineering
 
 | | |

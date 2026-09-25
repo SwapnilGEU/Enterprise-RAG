@@ -39,6 +39,7 @@ Two consequences worth knowing:
   rows to expect `rag_tool`.
 """
 
+import json
 import operator
 import os
 import re
@@ -128,6 +129,22 @@ def _content_words(text: str) -> set[str]:
     }
 
 
+def _acronyms(text: str) -> set[str]:
+    """Initials of every run of 2-5 consecutive words, so "rag" matches a
+    heading that says "Retrieval-Augmented Generation" and "llm" matches
+    "Large Language Model". Added 2026-09-25 after "what is rag" scored 0.
+
+    Loose on purpose: a stray match here only picks the fast path, and a
+    fast path whose documents do not answer still falls back (kb_refused)."""
+    out: set[str] = set()
+    for line in text.splitlines():
+        words = re.findall(r"[a-z0-9]+", line.lower())
+        for n in range(2, 6):
+            for i in range(len(words) - n + 1):
+                out.add("".join(w[0] for w in words[i:i + n]))
+    return out
+
+
 def prefetch_overlap(question: str, tool_output: str) -> float:
     """Fraction of the question's content words that appear in the citations.
 
@@ -139,7 +156,7 @@ def prefetch_overlap(question: str, tool_output: str) -> float:
     if not asked:
         return 0.0
     _, _, citations = tool_output.partition("Sources:")
-    cited = _content_words(citations)
+    cited = _content_words(citations) | _acronyms(citations)
     if not cited:
         return 0.0
     return len(asked & cited) / len(asked)
@@ -203,7 +220,7 @@ and its result appears above as a `rag_tool` result. A note attached to it says
 whether the documents that came back match the question. Read that note first.
 
 THE KNOWLEDGE BASE OUTRANKS YOUR OWN MEMORY. When its result covers the
-question, answer FROM IT and cite its sources. Do not answer a machine
+question, answer FROM IT. Do not answer a machine
 learning, NLP, LLM or RAG question from memory when the search result addresses
 it — your memory is general, and the exact definitions, figures and names the
 user is asking for are in those documents.
@@ -216,7 +233,7 @@ the user whether they would like you to look something up — look it up, or
 answer. You may call `rag_tool` again with different phrasing if you think the
 automatic search missed.
 
-When you answer from the knowledge base result, cite its sources."""
+Do not write citations or a Sources list — the top source is added automatically."""
 )
 
 # Used when AGENT_RAG_FIRST=0 — the model is back in charge of reaching for the
@@ -233,7 +250,7 @@ DIRECT_ANSWER_PROMPT = SystemMessage(
     content="""You are a technical assistant. Answer the question using ONLY the \
 documents provided below.
 
-- Cite the sources exactly as they appear in the documents.
+- Do not write citations or a Sources list — the top source is added automatically.
 - If the documents do not fully answer the question, say what is missing rather \
 than filling the gap from memory.
 - Be concise and direct. Do not describe your process or mention these instructions."""
@@ -248,6 +265,10 @@ class AgentState(TypedDict, total=False):
     # Set by retrieve_first: did the pre-search actually match the question?
     # Read by the router to decide whether the model needs a turn at all.
     kb_matched: bool
+    # The pre-search ran but the documents did not answer the question (the
+    # inner answer refused, or the direct answer came out as junk). Anything
+    # the model says after that is its own knowledge, not retrieval.
+    kb_refused: bool
 
 
 # --------------------------------------------------------------------------
@@ -392,9 +413,11 @@ def build_agent(config: Config = CONFIG):
 
     tools = build_tools(config)
     tools_by_name = {t.name: t for t in tools}
-    llm_with_tools = get_llm(config).bind_tools(tools)
+    # Tagged so stream_agent() can tell final-answer tokens apart from the
+    # LLM calls made inside tools. No effect on invoke().
+    llm_with_tools = get_llm(config).bind_tools(tools).with_config(tags=[ANSWER_STREAM_TAG])
 
-    plain_llm = get_llm(config)          # no tools bound — see direct_answer_node
+    plain_llm = get_llm(config).with_config(tags=[ANSWER_STREAM_TAG])  # no tools bound — see direct_answer_node
     rag_first = _rag_first_enabled()
     fast_path = rag_first and _fast_path_enabled()
     system_prompt = AGENT_SYSTEM_PROMPT if rag_first else AGENT_SYSTEM_PROMPT_NO_PREFETCH
@@ -433,15 +456,25 @@ def build_agent(config: Config = CONFIG):
         # what let it skip a knowledge base that had the answer.
         overlap = prefetch_overlap(question, str(output))
         matched = overlap >= RAG_PREFETCH_MATCH_MIN
+
+        # Overlap only compares words with section HEADINGS, so one shared word
+        # can pass ("what is superised learning" matched on "learning" alone).
+        # The inner rag_tool answer is a second opinion that costs nothing —
+        # it has already been generated. If it refused or degraded, the
+        # documents did not answer the question, whatever the overlap said.
+        refused = kb_refused(str(output))
+        if matched and refused:
+            logger.info("retrieve_first: overlap matched but the knowledge base had no answer — not a match")
+            matched = False
         logger.info(
             f"retrieve_first: citation overlap {overlap:.2f} "
-            f"(threshold {RAG_PREFETCH_MATCH_MIN:.2f}, matched={matched})"
+            f"(threshold {RAG_PREFETCH_MATCH_MIN:.2f}, matched={matched}, kb_refused={refused})"
         )
 
         if matched:
             note = (
                 "[These documents are about the subject of the question. Answer from "
-                "them and cite the sources — do not answer from your own memory "
+                "them — do not answer from your own memory "
                 "instead.]"
             )
         else:
@@ -449,13 +482,14 @@ def build_agent(config: Config = CONFIG):
                 "[These are the closest documents found, but they do not obviously "
                 "match the question. If the question is about weather or the query "
                 "history, they are unrelated — ignore them and call the tool that "
-                "fits. If they do answer the question, use them and cite the sources.]"
+                "fits. If they do answer the question, use them.]"
             )
 
         output = f"[Automatic knowledge-base search for: {question}]\n{note}\n\n{output}"
 
         return {
             "kb_matched": matched,
+            "kb_refused": refused,
             "messages": [
                 AIMessage(
                     content="",
@@ -508,7 +542,18 @@ def build_agent(config: Config = CONFIG):
             DIRECT_ANSWER_PROMPT,
             HumanMessage(content=f"{context}\n\nQuestion: {state['user_query']}"),
         ])
-        return {"messages": [answer]}
+
+        # A small model handed off-topic passages can echo junk from them —
+        # "[MASK]" from the BERT paper, a bare citation. Don't ship that:
+        # mark the knowledge base as not having answered and let the agent
+        # handle the question the normal way.
+        if is_degenerate_answer(answer.content):
+            logger.warning(f"direct_answer: degenerate answer {str(answer.content)[:40]!r} — falling back to the agent")
+            return {"kb_matched": False, "kb_refused": True}
+        return {"messages": [with_top_source(answer, context)]}
+
+    def route_after_direct(state: AgentState):
+        return "log_to_db" if state.get("kb_matched") else "agent"
 
     def route_after_prefetch(state: AgentState):
         if fast_path and state.get("kb_matched"):
@@ -520,7 +565,55 @@ def build_agent(config: Config = CONFIG):
         # Prepend the system prompt each turn so the routing instruction never
         # scrolls out of the model's attention as the message history grows.
         messages = [system_prompt] + list(state["messages"])
-        return {"messages": [llm_with_tools.invoke(messages)]}
+        response = llm_with_tools.invoke(messages)
+
+        # A small model sometimes WRITES the call instead of making it:
+        #   I'll call `get_weather`... {"name": "get_weather", "parameters": {"city": "Delhi"}}
+        # Ollama only turns output into a real tool call when it is bare JSON,
+        # so the sentence in front leaves it as text and the tool never runs.
+        # Recover it here — only for tools that exist, with dict arguments.
+        if not getattr(response, "tool_calls", None):
+            recovered = parse_text_tool_call(str(response.content), set(tools_by_name))
+            if recovered:
+                logger.warning(f"agent: model wrote a {recovered['name']} call as text — running it")
+                response = AIMessage(
+                    content="",
+                    tool_calls=[recovered],
+                    id=response.id,
+                    usage_metadata=getattr(response, "usage_metadata", None),
+                    response_metadata=getattr(response, "response_metadata", {}) or {},
+                )
+
+        # A final answer (no tool call). If it rests on the knowledge base —
+        # no other tool was used and the latest rag_tool result actually
+        # answered — give it the same "answer [top source]" shape the fast
+        # path and /query use. Weather and SQL answers get no citation.
+        if not getattr(response, "tool_calls", None):
+            other_tools = {
+                call["name"]
+                for message in state["messages"]
+                if isinstance(message, AIMessage)
+                for call in (message.tool_calls or [])
+                if not is_prefetch_call(call) and call["name"] != "rag_tool"
+            }
+            kb_message = next(
+                (m for m in reversed(state["messages"])
+                 if isinstance(m, ToolMessage) and m.name == "rag_tool"),
+                None,
+            )
+            kb_output = str(kb_message.content) if kb_message is not None else ""
+            # The pre-search can also be ruled out AFTER it ran (the direct
+            # answer came out as junk) — state says so even if its text looks
+            # like an answer. A rag_tool call the model made itself is judged
+            # on its own output.
+            prefetch_rejected = (
+                kb_message is not None
+                and str(kb_message.tool_call_id).startswith(PREFETCH_CALL_PREFIX)
+                and state.get("kb_refused")
+            )
+            if not other_tools and kb_output and not prefetch_rejected and not kb_refused(kb_output):
+                response = with_top_source(response, kb_output)
+        return {"messages": [response]}
 
     def log_to_db_node(state: AgentState):
         """Log the final output and tool usage to Postgres."""
@@ -580,7 +673,10 @@ def build_agent(config: Config = CONFIG):
                 {"direct_answer": "direct_answer", "agent": "agent"},
             )
             # Straight to logging: nothing after a direct answer can call a tool.
-            graph.add_edge("direct_answer", "log_to_db")
+            graph.add_conditional_edges(
+                "direct_answer", route_after_direct,
+                {"log_to_db": "log_to_db", "agent": "agent"},
+            )
         else:
             graph.add_edge("retrieve_first", "agent")
     else:
@@ -605,3 +701,243 @@ def ask_agent(question: str, session_id: str = "default", config: Config = CONFI
         "start_time": time.time(),
         "messages": [HumanMessage(content=question)],
     })
+
+
+# --------------------------------------------------------------------------
+# Streaming the agent (added 2026-09-25)
+# --------------------------------------------------------------------------
+# graph.invoke() returns only once the whole graph has run, so /agent showed
+# nothing for 20s and then the full answer at once. graph.stream() with three
+# modes gives us everything the UI needs, from the same compiled graph:
+#
+#   "updates"   one event per finished node  -> status lines ("using get_weather")
+#   "messages"  LLM tokens as they decode     -> the answer, streamed
+#   "values"    the full state after each step -> the final state, for tools_used
+#
+# Only tokens from the FINAL-ANSWER LLM calls are passed on. The graph makes
+# other LLM calls too — rag_tool's own generate_answer() inside the pre-search,
+# the SQL sub-agent inside sql_tool — and streaming those would print a
+# half-answer the user then sees replaced. Those two call sites are tagged with
+# ANSWER_STREAM_TAG in build_agent(); everything untagged is dropped here.
+#
+# The agent node can also start writing text and then decide to call a tool
+# instead. If that happens a {"type": "reset"} event tells the client to clear
+# what it has shown for that turn.
+
+ANSWER_STREAM_TAG = "answer_stream"
+
+
+def _status(stage: str, message: str) -> dict:
+    return {"type": "status", "stage": stage, "message": message}
+
+
+def describe_tool_call(call: Mapping[str, object]) -> str:
+    """One friendly line per tool call, for the UI's progress list."""
+    name = str(call.get("name", "tool"))
+    args = call.get("args") or {}
+    if not isinstance(args, Mapping):
+        args = {}
+    if name == "get_weather":
+        return f"🌦️ Checking the weather for {args.get('city', 'that place')}…"
+    if name == "sql_tool":
+        return "🗄️ Querying the query-history database…"
+    if name == "rag_tool":
+        query = str(args.get("query", "")).strip()
+        return f"🔎 Searching the knowledge base again for “{query[:80]}”…" if query else "🔎 Searching the knowledge base again…"
+    return f"🛠️ Using {name}…"
+
+
+def _count_citations(tool_output: str) -> int:
+    _, _, citations = tool_output.partition("Sources:")
+    return sum(1 for line in citations.splitlines() if line.strip())
+
+
+def stream_agent(question: str, session_id: str = "default", config: Config = CONFIG):
+    """Run the agent, yielding status / token / reset events, then one
+    {"type": "state", "state": <final AgentState>} for the caller to summarise.
+
+    The final state is handed back raw rather than summarised here, so the API
+    computes tools_used and the answer text with exactly the code /agent uses.
+    """
+    graph = build_agent(config)
+    rag_first = _rag_first_enabled()
+    fast_path = rag_first and _fast_path_enabled()
+
+    if rag_first:
+        yield _status("retrieving", "🔎 Searching the knowledge base…")
+    else:
+        yield _status("thinking", "🧭 Deciding how to answer…")
+
+    inputs = {
+        "session_id": session_id,
+        "user_query": question,
+        "start_time": time.time(),
+        "messages": [HumanMessage(content=question)],
+    }
+
+    final_state = None
+    streamed_this_turn = False
+    announced_writing = False
+
+    for mode, payload in graph.stream(inputs, stream_mode=["updates", "messages", "values"]):
+        if mode == "messages":
+            chunk, meta = payload
+            if ANSWER_STREAM_TAG not in (meta.get("tags") or []):
+                continue
+            text = chunk.content if isinstance(getattr(chunk, "content", None), str) else ""
+            if not text:
+                continue
+            if not announced_writing:
+                yield _status("generating", "✍️ Writing the answer…")
+                announced_writing = True
+            streamed_this_turn = True
+            yield {"type": "token", "text": text}
+
+        elif mode == "updates":
+            for node, update in (payload or {}).items():
+                if not update:
+                    continue
+                if node == "retrieve_first":
+                    output = ""
+                    for message in update.get("messages", []):
+                        if isinstance(message, ToolMessage):
+                            output = str(message.content)
+                    n = _count_citations(output)
+                    if update.get("kb_matched"):
+                        tail = " — answering from them" if fast_path else ""
+                        yield _status("retrieved", f"📚 Found {n} matching source(s){tail}")
+                    elif update.get("kb_refused"):
+                        yield _status("routing", "📭 The knowledge base doesn't cover this — answering without it…")
+                    else:
+                        yield _status("routing", "🧭 The documents don't clearly match — choosing a tool…")
+                elif node == "direct_answer" and update.get("kb_matched") is False:
+                    if streamed_this_turn:
+                        yield {"type": "reset"}
+                    streamed_this_turn = False
+                    announced_writing = False
+                    yield _status("routing", "📭 The documents didn't actually answer this — answering without them…")
+                elif node == "agent":
+                    messages = update.get("messages", [])
+                    last = messages[-1] if messages else None
+                    calls = getattr(last, "tool_calls", None) or []
+                    if calls:
+                        if streamed_this_turn:
+                            yield {"type": "reset"}
+                        for call in calls:
+                            yield _status("tool", describe_tool_call(call))
+                        announced_writing = False
+                    streamed_this_turn = False
+                elif node == "tools":
+                    for message in update.get("messages", []):
+                        yield _status("tool_done", f"✅ {getattr(message, 'name', None) or 'tool'} finished")
+
+        elif mode == "values":
+            final_state = payload
+
+    yield {"type": "state", "state": final_state}
+
+
+def parse_text_tool_call(text: str, tool_names: set[str]) -> dict | None:
+    """Find a tool call a model wrote as JSON inside its reply text.
+
+    Accepts {"name": <known tool>, "parameters"|"arguments"|"args": {...}},
+    anywhere in the text (llama3.2 puts a sentence in front of it). Returns a
+    LangChain tool_call dict, or None. Only known tool names count, so a JSON
+    example in a normal answer is never mistaken for a call.
+    """
+    decoder = json.JSONDecoder()
+    start = text.find("{")
+    while start != -1:
+        try:
+            obj, _ = decoder.raw_decode(text, start)
+        except ValueError:
+            obj = None
+        if isinstance(obj, dict) and obj.get("name") in tool_names:
+            args = obj.get("parameters", obj.get("arguments", obj.get("args", {})))
+            if isinstance(args, str):
+                try:
+                    args = json.loads(args)
+                except ValueError:
+                    args = None
+            if isinstance(args, dict):
+                return {"name": obj["name"], "args": args,
+                        "id": f"textcall-{uuid.uuid4().hex[:8]}", "type": "tool_call"}
+        start = text.find("{", start + 1)
+    return None
+
+
+_KB_REFUSALS = (
+    "i don't know based on the provided context",
+    "i do not know based on the provided context",
+    "knowledge base lookup degraded",
+    "knowledge base lookup failed",
+)
+
+
+def kb_refused(tool_output: str) -> bool:
+    """Did rag_tool come back without an answer? Its output is
+    "<answer>\n\nSources: ...", so only the part before Sources is checked."""
+    answer, _, _ = tool_output.partition("Sources:")
+    text = answer.strip().lower().replace("\u2019", "'")
+    # `in`, not startswith: the automatic pre-search prefixes its own header
+    # and note, so the refusal is not at the start of the message.
+    return any(r in text for r in _KB_REFUSALS)
+
+
+def is_degenerate_answer(content) -> bool:
+    """True for output that is not an answer at all: empty, a lone
+    placeholder token like [MASK] or <unk>, or a couple of characters."""
+    text = content if isinstance(content, str) else str(content or "")
+    text = text.strip()
+    if len(text) < 4:
+        return True
+    # A lone bracketed token ([MASK], <unk>, (null)) or a lone all-caps word.
+    if re.fullmatch(r"[\[<(]\s*[A-Za-z_/|]{1,12}\s*[\]>)]", text):
+        return True
+    return bool(re.fullmatch(r"[A-Z_]{1,12}", text))
+
+
+# --------------------------------------------------------------------------
+# One citation, always the same shape (added 2026-09-25)
+# --------------------------------------------------------------------------
+# The model used to write its own sources, so the agent's answers came in two
+# styles: an inline "[doc — section]" on one path, a "Sources:" list of two or
+# three on another. The prompts now tell it not to cite at all, and the code
+# appends the single top-ranked source — the same "[doc — section, pages]"
+# string /query uses. All five sources stay available on /query.
+
+_SOURCES_BLOCK = re.compile(r"\n\s*(?:\*\*|#+\s*)?sources?\s*:?\s*(?:\*\*)?\s*:?\s*\n.*\Z",
+                            re.IGNORECASE | re.DOTALL)
+_BRACKET_CITATION = re.compile(r"\s*\[[^\[\]\n]*(?:\.pdf|\.docx|\.xlsx| — )[^\[\]\n]*\]")
+
+
+def kb_citations(tool_output: str) -> list[str]:
+    """Citation lines from a rag_tool result, best-ranked first."""
+    _, _, block = tool_output.partition("Sources:")
+    return [line.strip() for line in block.splitlines() if line.strip()]
+
+
+def strip_citations(text: str) -> str:
+    """Remove a trailing "Sources:" list and any inline [doc — section] tags
+    the model wrote despite being told not to."""
+    text = _SOURCES_BLOCK.sub("", text)
+    text = _BRACKET_CITATION.sub("", text)
+    return text.rstrip()
+
+
+def with_top_source(message, tool_output: str):
+    """Return `message` with its citations replaced by the single top source.
+    Leaves it alone when there is no source to add."""
+    citations = kb_citations(tool_output)
+    content = message.content if isinstance(message.content, str) else str(message.content)
+    if not citations:
+        return message
+    body = strip_citations(content)
+    if not body:
+        return message
+    return AIMessage(
+        content=f"{body} {citations[0]}",
+        id=getattr(message, "id", None),
+        usage_metadata=getattr(message, "usage_metadata", None),
+        response_metadata=getattr(message, "response_metadata", {}) or {},
+    )

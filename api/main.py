@@ -189,5 +189,6 @@ def root():
         "service": settings.SERVICE_NAME,
         "version": settings.SERVICE_VERSION,
         "docs": "/docs",
-        "endpoints": ["/health", "/ready", "/query"] + (["/agent"] if settings.ENABLE_AGENT else []),
+        "endpoints": ["/health", "/ready", "/query", "/query/stream"]
+        + (["/agent", "/agent/stream"] if settings.ENABLE_AGENT else []),
     }

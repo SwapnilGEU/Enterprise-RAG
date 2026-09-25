@@ -12,10 +12,12 @@ work. The cost is that handlers must be thread-safe, which is what
 `api/state.py` is for.
 """
 
+import json
 import logging
 import time
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 
 from api import metrics, settings
 from api.schemas import (
@@ -271,6 +273,8 @@ def agent(body: AgentRequest, request: Request) -> AgentResponse:
         answer=_message_text(state["messages"][-1].content),
         tools_used=tools_used,
         retrieval_prefetched=prefetched,
+        kb_matched=state.get("kb_matched") if prefetched else None,
+        kb_refused=state.get("kb_refused") if prefetched else None,
         request_id=request_id,
         latency_ms=latency_ms,
     )
@@ -318,3 +322,230 @@ def _message_text(content) -> str:
                 parts.append(str(block.get("text") or block.get("content") or ""))
         return " ".join(p for p in parts if p).strip()
     return str(content).strip()
+
+
+# --- streaming (added 2026-09-25) --------------------------------------------
+#
+# /query and /agent return one JSON body after generation finishes, so the UI
+# could show nothing until the last token was decoded. These two endpoints run
+# the same pipeline but send newline-delimited JSON (NDJSON) as it happens:
+#
+#   {"type": "status", "stage": "...", "message": "🔎 Searching the knowledge base…"}
+#   {"type": "token",  "text": "Hybrid "}
+#   {"type": "reset"}                        agent only: clear this turn's text
+#   {"type": "done",   ...same fields as the non-streaming response...}
+#   {"type": "error",  "detail": "...", "request_id": "..."}
+#
+# The non-streaming endpoints are unchanged — evaluation and scripts use them.
+#
+# What changes once a response streams:
+#   * Readiness and the generation slot are still checked BEFORE the stream
+#     starts, so those still come back as a real 503.
+#   * After the first byte the status code is already 200, so a failure becomes
+#     an "error" event, not a 502.
+#   * The slot is released in the generator's `finally` — when the stream ends
+#     or the client goes away — not when the handler returns (which is
+#     immediately, before any work has happened).
+#   * The request_context middleware's access line fires when headers go out,
+#     so its duration_ms is time-to-headers. The real numbers are in the
+#     "answered ... (stream)" line below and the time-to-first-token metric.
+
+
+def _ndjson(event: dict) -> bytes:
+    return (json.dumps(event, ensure_ascii=False, default=str) + "\n").encode("utf-8")
+
+
+# X-Accel-Buffering stops an nginx in front of this from buffering the stream
+# back into one lump — the exact symptom this endpoint exists to fix.
+_STREAM_HEADERS = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+
+
+def _acquire_or_503(endpoint: str) -> None:
+    if not STATE.acquire_generation_slot(endpoint):
+        logger.warning(
+            "refused %s — no generation slot within %ss",
+            endpoint, settings.GENERATION_QUEUE_TIMEOUT,
+            extra={"event": "refused", "reason": "queue_timeout",
+                   "timeout_s": settings.GENERATION_QUEUE_TIMEOUT,
+                   "max_concurrent": settings.MAX_CONCURRENT_GENERATIONS},
+        )
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"No generation slot within {settings.GENERATION_QUEUE_TIMEOUT}s "
+                f"({settings.MAX_CONCURRENT_GENERATIONS} concurrent max). Retry shortly."
+            ),
+        )
+
+
+@router.post("/query/stream", tags=["rag"])
+def query_stream(body: QueryRequest, request: Request) -> StreamingResponse:
+    """/query, streamed. See the block comment above for the event format."""
+    endpoint = "/query/stream"
+    request_id = request.state.request_id
+    started = time.perf_counter()
+
+    if not STATE.qdrant.ready or not STATE.ollama.ready:
+        detail = _unready_detail(["qdrant", "ollama"])
+        logger.warning("refused %s — dependency down: %s", endpoint, detail,
+                       extra={"event": "refused", "reason": "dependency_down", "detail": detail})
+        raise HTTPException(status_code=503, detail=detail)
+
+    _acquire_or_503(endpoint)
+
+    def events():
+        first_token_s = None
+        try:
+            from src.generation import stream_answer
+
+            done = None
+            for event in stream_answer(body.question, top_k=body.top_k):
+                if event["type"] == "done":
+                    done = event
+                    continue
+                if event["type"] == "token" and first_token_s is None:
+                    first_token_s = time.perf_counter() - started
+                yield _ndjson(event)
+
+            done = done or {}
+            latency_ms = round((time.perf_counter() - started) * 1000, 1)
+            sources = _to_sources(done.get("sources") or [], include_text=body.include_context)
+            degraded = bool(done.get("degraded"))
+
+            metrics.answer(endpoint, degraded=degraded,
+                           failure_stage=done.get("failure_stage"), n_sources=len(sources))
+            metrics.first_token(endpoint, first_token_s)
+            logger.info(
+                "answered /query (stream) in %sms, first token after %sms, from %d source(s)%s",
+                latency_ms, _ms(first_token_s), len(sources), " [DEGRADED]" if degraded else "",
+                extra={
+                    "event": "query_answered", "streamed": True, "request_id": request_id,
+                    "latency_ms": latency_ms, "time_to_first_token_ms": _ms(first_token_s),
+                    "n_sources": len(sources), "degraded": degraded,
+                    "failure_stage": done.get("failure_stage"),
+                    "top_document": sources[0].document if sources else None,
+                    "question": body.question[:120],
+                },
+            )
+            yield _ndjson({
+                "type": "done",
+                "answer": done.get("answer", ""),
+                "sources": [s.model_dump() for s in sources],
+                "degraded": degraded,
+                "failure_stage": done.get("failure_stage"),
+                "request_id": request_id,
+                "latency_ms": latency_ms,
+                "time_to_first_token_ms": _ms(first_token_s),
+            })
+        except GeneratorExit:
+            logger.info("client left %s mid-stream", endpoint,
+                        extra={"event": "stream_abandoned", "request_id": request_id})
+            raise
+        except Exception as exc:  # noqa: BLE001 — must end the stream with an event, not a dropped socket
+            logger.exception("query stream failed",
+                             extra={"question": body.question[:120], "request_id": request_id})
+            yield _ndjson({"type": "error", "detail": f"{type(exc).__name__}: {exc}",
+                           "request_id": request_id})
+        finally:
+            STATE.release_generation_slot(endpoint)
+
+    return StreamingResponse(events(), media_type="application/x-ndjson", headers=_STREAM_HEADERS)
+
+
+@router.post("/agent/stream", tags=["agent"])
+def agent_stream(body: AgentRequest, request: Request) -> StreamingResponse:
+    """/agent, streamed: progress lines for retrieval and each tool call, then
+    the final answer token by token."""
+    if not settings.ENABLE_AGENT:
+        raise HTTPException(status_code=404, detail="Agent endpoint disabled (API_ENABLE_AGENT=false).")
+
+    endpoint = "/agent/stream"
+    request_id = request.state.request_id
+    started = time.perf_counter()
+
+    if not STATE.agent.ready:
+        logger.warning("refused %s — agent unavailable: %s", endpoint,
+                       STATE.agent.error or "still warming",
+                       extra={"event": "refused", "reason": "agent_unavailable",
+                              "detail": STATE.agent.error})
+        raise HTTPException(
+            status_code=503,
+            detail=(f"Agent unavailable: {STATE.agent.error or 'still warming'}. "
+                    "/query is unaffected and may still work."),
+        )
+
+    _acquire_or_503(endpoint)
+
+    def events():
+        first_token_s = None
+        try:
+            from src.agent import is_prefetch_call, stream_agent
+
+            STATE.get_agent()    # same warm, shared graph /agent uses
+            state = None
+            for event in stream_agent(body.question, session_id=body.session_id):
+                if event["type"] == "state":
+                    state = event["state"]
+                    continue
+                if event["type"] == "token" and first_token_s is None:
+                    first_token_s = time.perf_counter() - started
+                yield _ndjson(event)
+
+            messages = (state or {}).get("messages") or []
+            answer = _message_text(messages[-1].content) if messages else ""
+
+            # Nothing streamed (e.g. the model answered in one piece): still
+            # show the answer rather than an empty bubble.
+            if first_token_s is None and answer:
+                first_token_s = time.perf_counter() - started
+                yield _ndjson({"type": "token", "text": answer})
+
+            calls = [call for message in messages
+                     if getattr(message, "tool_calls", None) for call in message.tool_calls]
+            tools_used = list(dict.fromkeys(c["name"] for c in calls if not is_prefetch_call(c)))
+            prefetched = any(is_prefetch_call(c) for c in calls)
+            latency_ms = round((time.perf_counter() - started) * 1000, 1)
+
+            metrics.answer(endpoint, degraded=False)
+            metrics.tool_calls(tools_used, prefetched)
+            metrics.first_token(endpoint, first_token_s)
+            logger.info(
+                "answered /agent (stream) in %sms, first token after %sms — tools: %s%s",
+                latency_ms, _ms(first_token_s), ", ".join(tools_used) or "none",
+                " (kb pre-searched)" if prefetched else "",
+                extra={
+                    "event": "agent_answered", "streamed": True, "request_id": request_id,
+                    "latency_ms": latency_ms, "time_to_first_token_ms": _ms(first_token_s),
+                    "tools_used": tools_used, "n_tools": len(tools_used),
+                    "retrieval_prefetched": prefetched, "session_id": body.session_id,
+                    "question": body.question[:120],
+                },
+            )
+            yield _ndjson({
+                "type": "done",
+                "answer": answer,
+                "tools_used": tools_used,
+                "retrieval_prefetched": prefetched,
+                "kb_matched": bool((state or {}).get("kb_matched")) if prefetched else None,
+                "kb_refused": bool((state or {}).get("kb_refused")) if prefetched else None,
+                "request_id": request_id,
+                "latency_ms": latency_ms,
+                "time_to_first_token_ms": _ms(first_token_s),
+            })
+        except GeneratorExit:
+            logger.info("client left %s mid-stream", endpoint,
+                        extra={"event": "stream_abandoned", "request_id": request_id})
+            raise
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("agent stream failed",
+                             extra={"question": body.question[:120], "request_id": request_id})
+            yield _ndjson({"type": "error", "detail": f"{type(exc).__name__}: {exc}",
+                           "request_id": request_id})
+        finally:
+            STATE.release_generation_slot(endpoint)
+
+    return StreamingResponse(events(), media_type="application/x-ndjson", headers=_STREAM_HEADERS)
+
+
+def _ms(seconds: float | None) -> float | None:
+    return round(seconds * 1000, 1) if seconds is not None else None
