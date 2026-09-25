@@ -73,6 +73,12 @@ def init() -> bool:
         "rag.retrieval.sources", unit="{chunk}",
         description="Sources returned with an answer")
 
+    # Once answers stream, total latency stops being what the user feels —
+    # the wait before the FIRST token is. Streaming endpoints only.
+    _i["ttft"] = m.create_histogram(
+        "rag.generation.time_to_first_token", unit="s",
+        description="Request start to first answer token, streaming endpoints")
+
     # --- agent ------------------------------------------------------------
     _i["tool_calls"] = m.create_counter(
         "rag.agent.tool_calls",
@@ -143,3 +149,9 @@ def tool_calls(tools: list[str], prefetched: bool) -> None:
         _i["tool_calls"].add(1, {"tool": tool})
     if prefetched:
         _i["tool_calls"].add(1, {"tool": "_prefetch"})
+
+
+def first_token(endpoint: str, seconds: float | None) -> None:
+    """Time to first token. Skipped when no token was ever sent."""
+    if _ready and seconds is not None:
+        _i["ttft"].record(seconds, {"endpoint": endpoint})

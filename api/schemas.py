@@ -61,6 +61,16 @@ class AgentResponse(BaseModel):
                     "model's first turn (AGENT_RAG_FIRST). Reported separately "
                     "because it happens on every question and is not a routing decision.",
     )
+    kb_matched: bool | None = Field(
+        None,
+        description="False when the knowledge base did not answer the question, so any "
+                    "answer without a tool is the model's own knowledge, not retrieval.",
+    )
+    kb_refused: bool | None = Field(
+        None,
+        description="True when the knowledge base searched and had NO answer. With no "
+                    "tool called, the answer is then the model's general knowledge.",
+    )
     request_id: str
     latency_ms: float
 

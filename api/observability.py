@@ -354,6 +354,7 @@ def configure_metrics() -> bool:
         bucketed("http.client.request.duration", _SLOW_BUCKETS_S),
         bucketed("http.client.duration", _SLOW_BUCKETS_MS),
         bucketed("rag.generation.queue_wait", _SLOW_BUCKETS_S),
+        bucketed("rag.generation.time_to_first_token", _SLOW_BUCKETS_S),
         bucketed("rag.retrieval.sources", _COUNT_BUCKETS),
     ]
 

@@ -35,6 +35,7 @@ the server's semaphore and, past `API_GENERATION_QUEUE_TIMEOUT`, turn into
 from __future__ import annotations
 
 import io
+import json
 import os
 import time
 import uuid
@@ -57,8 +58,8 @@ HEALTH_TIMEOUT = 5
 
 CSV_COLUMNS = [
     "timestamp", "endpoint", "question", "answer", "citations", "tools_used",
-    "kb_prefetched", "latency_ms", "degraded", "failure_stage", "status",
-    "error", "request_id",
+    "kb_prefetched", "latency_ms", "ttft_ms", "degraded", "failure_stage", "status",
+    "error", "request_id", "steps",
 ]
 
 
@@ -79,7 +80,7 @@ def rows_to_csv(rows: list[dict]) -> str:
 
 
 def build_row(endpoint: str, question: str, payload: dict, status: str,
-              error: str | None, latency_ms: float) -> dict:
+              error: str | None, latency_ms: float, steps: list[str] | None = None) -> dict:
     """One chat/CSV row. Same shape whether the call succeeded or not, so a
     failed query still exports rather than vanishing from the record."""
     sources = payload.get("sources") or []
@@ -91,13 +92,23 @@ def build_row(endpoint: str, question: str, payload: dict, status: str,
         "citations": " | ".join(s.get("citation", "") for s in sources),
         "tools_used": ", ".join(payload.get("tools_used") or []),
         "kb_prefetched": bool(payload.get("retrieval_prefetched", False)),
+        # None from the non-streaming /agent, which does not report it.
+        "_kb_matched": payload.get("kb_matched"),
+        # True only when the knowledge base searched and had NO answer. This,
+        # not _kb_matched, decides the "not from your documents" notice:
+        # kb_matched is a word-overlap guess and misses paraphrases, while a
+        # refusal from the knowledge base itself is a fact.
+        "_kb_refused": payload.get("kb_refused"),
         "latency_ms": payload.get("latency_ms", round(latency_ms, 1)),
+        "ttft_ms": payload.get("time_to_first_token_ms"),
         "degraded": bool(payload.get("degraded", False)),
         "failure_stage": payload.get("failure_stage") or "",
         "status": status,
         "error": error or "",
         "request_id": payload.get("request_id", ""),
+        "steps": " → ".join(steps or []),
         "_sources": sources,          # underscore keys stay out of the CSV
+        "_steps": list(steps or []),
     }
 
 
@@ -145,6 +156,91 @@ def call_api(base_url: str, endpoint: str, question: str, *, top_k: int | None,
         return {}, "error", f"HTTP {response.status_code}: {detail}"
 
     return {}, "error", "unreachable"
+
+
+def stream_api(base_url: str, endpoint: str, question: str, *, include_context: bool,
+               session_id: str, timeout: int):
+    """POST one question to the streaming endpoint and yield its events.
+
+    The API sends newline-delimited JSON — one event per line — and this yields
+    each as a dict the moment its line arrives:
+
+        {"type": "status", "message": "🔎 Searching the knowledge base…"}
+        {"type": "token",  "text": "Hybrid "}
+        {"type": "reset"}                   agent only: clear this turn's text
+        {"type": "done",   ...the same fields /query or /agent return...}
+        {"type": "error",  "detail": "..."}
+
+    Replaced call_api() for the chat: `requests.post(...)` without
+    `stream=True` reads the WHOLE body before returning, so even a streaming
+    server would look frozen until the last token. `stream=True` plus
+    iter_lines() is what lets each token through as it arrives.
+
+    Never raises, like call_api(): transport problems become an error event.
+    Falls back to the non-streaming endpoint on a 404, so this UI still works
+    against an API from before streaming existed.
+    """
+    url = f"{base_url}/{endpoint.strip('/')}/stream"
+    if endpoint.strip("/") == "agent":
+        body = {"question": question, "session_id": session_id}
+    else:
+        body = {"question": question, "include_context": include_context}
+    headers = {"X-Request-ID": uuid.uuid4().hex}
+
+    for attempt in (1, 2):
+        try:
+            # (connect, read) — the read timeout is the longest allowed GAP
+            # between bytes, not the whole answer, which is what you want for
+            # a stream.
+            response = requests.post(url, json=body, headers=headers, stream=True,
+                                     timeout=(10, timeout))
+        except requests.exceptions.Timeout:
+            yield {"type": "error", "detail": f"timed out after {timeout}s"}
+            return
+        except requests.exceptions.ConnectionError:
+            yield {"type": "error", "detail": f"cannot reach {base_url} — is the API running?"}
+            return
+        except Exception as exc:  # noqa: BLE001
+            yield {"type": "error", "detail": f"{type(exc).__name__}: {exc}"}
+            return
+
+        if response.status_code == 200:
+            with response:
+                try:
+                    # Bytes, not decode_unicode: NDJSON has no charset header,
+                    # and json.loads() reads UTF-8 bytes directly.
+                    for line in response.iter_lines():
+                        if not line:
+                            continue
+                        try:
+                            yield json.loads(line)
+                        except ValueError:
+                            continue
+                except requests.exceptions.RequestException as exc:
+                    yield {"type": "error", "detail": f"stream interrupted: {type(exc).__name__}"}
+            return
+
+        if response.status_code == 404 and endpoint.strip("/") in ("query", "agent"):
+            response.close()
+            payload, status, error = call_api(
+                base_url, endpoint, question, top_k=None, include_context=include_context,
+                session_id=session_id, timeout=timeout,
+            )
+            if status != "ok":
+                yield {"type": "error", "detail": error}
+                return
+            yield {"type": "status", "message": "ℹ️ This API has no streaming endpoint — showing the full answer"}
+            yield {"type": "token", "text": payload.get("answer", "")}
+            yield {"type": "done", **payload}
+            return
+
+        detail = _detail_of(response)
+        response.close()
+        if response.status_code == 503 and attempt == 1:
+            time.sleep(2)
+            continue
+        yield {"type": "error", "detail": f"HTTP {response.status_code}: {detail}"}
+        return
 
 
 def _detail_of(response) -> str:
@@ -195,12 +291,12 @@ def init_state() -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="DEV RAG", page_icon="🤖", layout="wide")
+    st.set_page_config(page_title="Enterprise RAG", page_icon="🤖", layout="wide")
     init_state()
 
     # ---- sidebar ----------------------------------------------------------
     with st.sidebar:
-        st.title("🤖 DEV RAG")
+        st.title("⚙️ Settings")
 
         base_url = st.text_input("API base URL", value=API_BASE_URL)
         endpoint = st.radio(
@@ -276,10 +372,17 @@ def main() -> None:
         with st.chat_message("user"):
             st.write(row["question"])
         with st.chat_message("assistant"):
-            if row["status"] != "ok":
+            steps = row.get("_steps") or []
+            if steps:
+                with st.expander(f"🧭 {len(steps)} step(s)"):
+                    for step in steps:
+                        st.caption(step)
+            if row["status"] == "error":
                 st.error(row["error"])
             else:
-                st.write(row["answer"])
+                st.markdown(row["answer"])
+                if row["status"] == "stopped":
+                    st.warning("⏹️ Stopped — this answer is incomplete.")
                 if row["degraded"]:
                     st.warning(
                         f"Degraded answer — the pipeline failed at: {row['failure_stage'] or 'unknown'}. "
@@ -297,7 +400,11 @@ def main() -> None:
                 # further. Both facts are still reported — just not as two
                 # clauses that look like they disagree.
                 marks = []
-                if row.get("kb_prefetched") and not row["tools_used"]:
+                if row.get("kb_prefetched") and not row["tools_used"] and row.get("_kb_refused"):
+                    # The knowledge base searched and had no answer, and no
+                    # tool ran, so this is the model's general knowledge.
+                    marks.append("generated by the model — not retrieved from the knowledge base")
+                elif row.get("kb_prefetched") and not row["tools_used"]:
                     marks.append("answered from the pre-searched knowledge base")
                 else:
                     if row.get("kb_prefetched"):
@@ -317,13 +424,14 @@ def main() -> None:
                                 st.caption(f"score {source['score']:.4f}")
                             if source.get("text"):
                                 st.text(source["text"][:1500])
+            first = f" · first token {row['ttft_ms']} ms" if row.get("ttft_ms") is not None else ""
             st.caption(
-                f"{row['endpoint']} · {row['latency_ms']} ms · {row['timestamp']} · {row['request_id'][:8]}"
+                f"{row['endpoint']} · {row['latency_ms']} ms{first} · {row['timestamp']} · {row['request_id'][:8]}"
             )
 
     # Filled in during processing, below — declared here so progress appears in
     # the right place on the page rather than at the bottom.
-    status_slot = st.empty()
+    live_slot = st.container()
 
     # ---- pending ------------------------------------------------------------
     # Only shown when something is actually waiting. With one-at-a-time sending
@@ -368,9 +476,9 @@ def main() -> None:
 
         with stop_col:
             if st.button(
-                "🛑 Stop", use_container_width=True, disabled=not pending,
-                help="Drops what is still waiting. The question already in flight "
-                     "finishes — a blocking request cannot be cancelled.",
+                "🛑 Stop", use_container_width=True, disabled=not busy,
+                help="Stops the answer being written now (keeping what has arrived) "
+                     "and drops anything still waiting.",
             ):
                 st.session_state.queue = []
                 st.session_state.cancel = True
@@ -389,35 +497,94 @@ def main() -> None:
     if st.session_state.queue:
         current = st.session_state.queue.pop(0)
         remaining = len(st.session_state.queue)
-        status_slot.info(
-            f"Answering: {current}" + (f"  ·  {remaining} waiting" if remaining else "")
-        )
 
         # Recorded in session state, not just the local `current`, for the whole
-        # duration of the blocking call. Between the pop above and the append
-        # below the question used to exist ONLY in that local: off the queue,
-        # not yet in the chat. Anything that restarted the script in that window
-        # — a widget interaction requesting a rerun, a browser refresh, an
-        # exception in build_row — took the question with it and the user saw
-        # their question silently ignored. Now it survives, and `busy` above can
-        # see it.
+        # duration of the call. Between the pop above and the append below the
+        # question used to exist ONLY in that local: off the queue, not yet in
+        # the chat. Anything that restarted the script in that window took the
+        # question with it. Now it survives, and `busy` above can see it.
         st.session_state.in_flight = current
 
+        # Streamed (added 2026-09-25). The old runner called call_api(), which
+        # blocked until the API had generated the WHOLE answer and only then
+        # drew anything. Now progress lines and tokens are drawn as they
+        # arrive, inside a chat bubble at the bottom of the history.
         started = time.perf_counter()
+        steps: list[str] = []
+        parts: list[str] = []
+        payload: dict = {}
+        status, error = "ok", None
+        recorded = False
         try:
-            payload, status, error = call_api(
-                base_url, endpoint, current,
-                top_k=None, include_context=include_context,
-                session_id=st.session_state.session_id, timeout=REQUEST_TIMEOUT,
-            )
+            with live_slot:
+                if remaining:
+                    st.caption(f"⏳ {remaining} more waiting after this one")
+                with st.chat_message("user"):
+                    st.markdown(current)
+                with st.chat_message("assistant"):
+                    progress = st.status("⏳ Sending…", expanded=True)
+                    answer_box = st.empty()
+
+                    for event in stream_api(
+                        base_url, endpoint, current, include_context=include_context,
+                        session_id=st.session_state.session_id, timeout=REQUEST_TIMEOUT,
+                    ):
+                        kind = event.get("type")
+                        if kind == "status":
+                            message = str(event.get("message", ""))
+                            steps.append(message)
+                            progress.write(message)
+                            progress.update(label=message)
+                        elif kind == "token":
+                            parts.append(str(event.get("text", "")))
+                            # The trailing block is a cursor, so it is obvious
+                            # the answer is still being written.
+                            answer_box.markdown("".join(parts) + " ▌")
+                        elif kind == "reset":
+                            # The agent started writing, then chose a tool.
+                            parts.clear()
+                            answer_box.empty()
+                        elif kind == "done":
+                            payload = event
+                            # The server's final text wins: the agent tidies
+                            # its answer at the end (one top source appended,
+                            # any model-written citations removed).
+                            if event.get("answer"):
+                                parts[:] = [str(event["answer"])]
+                        elif kind == "error":
+                            status, error = "error", str(event.get("detail", "unknown error"))
+
+                    answer_box.markdown("".join(parts))
+                    progress.update(
+                        label="✅ Done" if status == "ok" else "❌ Failed",
+                        state="complete" if status == "ok" else "error",
+                        expanded=False,
+                    )
+
+            if status == "ok" and not payload:
+                status, error = "error", "The stream ended without a final answer."
+            if payload and not payload.get("answer"):
+                payload["answer"] = "".join(parts)
+
             elapsed = (time.perf_counter() - started) * 1000
             st.session_state.chat.append(
-                build_row(endpoint, current, payload, status, error, elapsed)
+                build_row(endpoint, current, payload, status, error, elapsed, steps=steps)
             )
+            recorded = True
         finally:
-            # finally, so a raise on the way to the chat row still releases the
-            # input. Without it one unexpected exception locks the box for the
-            # rest of the session with no way back but a refresh.
+            # Reached without a row when Stop was pressed: Streamlit restarts
+            # the script mid-stream, which abandons the HTTP request (the API
+            # sees the disconnect and frees its generation slot). Keep what had
+            # already arrived rather than losing the question entirely.
+            #
+            # Also releases the input box if anything above raised — without
+            # this one unexpected exception locks it for the whole session.
+            if not recorded:
+                elapsed = (time.perf_counter() - started) * 1000
+                st.session_state.chat.append(
+                    build_row(endpoint, current, {"answer": "".join(parts)}, "stopped",
+                              "Stopped before the answer finished.", elapsed, steps=steps)
+                )
             st.session_state.in_flight = None
 
         # Stop clears the queue, so the loop ends naturally after this one.
