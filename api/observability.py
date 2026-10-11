@@ -1,14 +1,5 @@
 """OpenTelemetry tracing for the API — one place, or none.
 
-Why this module exists at all
------------------------------
-Exactly one place may configure the global tracer provider. Two places means
-two span processors on one provider and every span exported twice. That raises
-no error; it just makes `avg(span:duration)` in TraceQL quietly wrong. So all
-provider setup lives here and nowhere else.
-
-What this does NOT do: MLflow
------------------------------
 An earlier note in claude/fastapi-as-built.md said MLflow's `@mlflow.trace`
 spans "nest under whatever provider exists", so they would land inside the HTTP
 server span automatically. Measured on mlflow 3.16.1, that is false:
@@ -37,19 +28,6 @@ Hence the split, decided by environment and nothing else:
                  the same uninformative "N/N failed" as a spent judge quota.
                  If you ever want both, MLFLOW_TRACE_ENABLE_OTLP_DUAL_EXPORT=true.
 
-Where the spans come from
--------------------------
-FastAPI instrumentation gives one server span per request. httpx and requests
-instrumentation give a client span for every Qdrant search and every Ollama
-generation — which is where the time actually goes, so the breakdown is honest
-without a single manual span in src/.
-
-/health is excluded, for the same reason it is already excluded from the access
-log: a container healthcheck every few seconds would otherwise be most of what
-Tempo stores.
-
-With no endpoint configured every function here is a no-op and the service runs
-exactly as before. Tracing is never a reason the API fails to start.
 """
 
 import logging
